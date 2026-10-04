@@ -8,7 +8,7 @@
 - Baseline applied through the authenticated SQL editor in one transaction to the verified empty database. Supabase migration history records `20261004220000` / `careerly_baseline`; Alembic records `0002_billing_persistence`. Do not apply this baseline again.
 - All nine public tables were checked: RLS enabled, no `anon` SELECT permission and no `authenticated` INSERT permission. Live Auth settings enable email signup with confirmation; Google and Apple are disabled. A malformed bearer was rejected with HTTP 403.
 - Gitignored `.config/supabase.json` and `backend/.env` contain the live URL/public key. The backend database is still the local SQLite setting until the owner supplies the private PostgreSQL connection URL. Full live login/CV processing is not yet verified.
-- GitHub working directory is `.`. Automatic production deployment was observed disabled; enabling it awaits the owner's action-time approval. No paid preview branching was enabled.
+- GitHub working directory is `.`. After the owner's approval, automatic production deployment was enabled and saved for branch `main`. No paid preview branching was enabled.
 - Flutter supports Supabase email signup/signin, confirmation-required signup, session recovery, token refresh and signout. Session tokens use platform secure storage, not SharedPreferences.
 - Backend `AUTH_MODE=supabase` validates each bearer with the configured project's Auth service; a supplied user header cannot select another account. Billing uses the Supabase user UUID.
 - SQL migrations are in `supabase/migrations`. All application tables have RLS enabled and deny direct `anon`/`authenticated` access. Flutter accesses CV and billing data through the authenticated FastAPI service, not through unrestricted database writes.
@@ -55,6 +55,8 @@ The owner must replace the password placeholder locally in `backend/.env`; do no
 
 Supabase does **not** host this Python/FastAPI service. A separate deployment and HTTPS `API_BASE_URL` are still needed for a live application. Run the existing backend locally for development; do not claim cloud scoring works until a deployed service is connected and smoke-tested.
 
+The Docker image supports the hosting provider's `PORT` environment variable (default `8787`) and excludes local credentials from its build context. Use `/ready` for deployment health checks: it returns HTTP 503 until the configured database is reachable and its revision matches the repository's Alembic head (currently `0002_billing_persistence`). `/health` remains a liveness endpoint and reports database availability separately. An account/provider selection and private database URL are still required before actual hosting deployment.
+
 ## Deliberate limits
 
 - Raw CV uploads are not retained (`STORE_ORIGINAL_CV=false`); no public Storage bucket is created.
@@ -64,7 +66,7 @@ Supabase does **not** host this Python/FastAPI service. A separate deployment an
 
 ## Verification
 
-Local verification (2026-10-04): 108 Flutter tests and 84 backend tests passed; Ruff passed; unsigned iOS Release built successfully (26.7 MB). Live checks now cover project health, baseline deployment, both migration trackers, RLS/table permissions, Auth settings and invalid-token rejection. Successful real-user login, server-to-PostgreSQL connection and CV end-to-end checks remain pending.
+Local verification (2026-10-04): 108 Flutter tests and 87 backend tests passed; Ruff passed; unsigned iOS Release built successfully (26.7 MB). Backend tests ignore local `.env` and use isolated development settings/databases, including after live Supabase configuration. Live checks now cover project health, baseline deployment, both migration trackers, RLS/table permissions, Auth settings and invalid-token rejection. Automatic GitHub deployment is enabled and persisted after reload. Successful real-user login, server-to-PostgreSQL connection and CV end-to-end checks remain pending.
 
 Run `flutter analyze`, `flutter test`, and backend `pytest`/`ruff`. Live smoke checks must additionally verify email confirmation/login, token refresh/recovery/signout, rejection of anonymous database access, CV ownership isolation, usage persistence, and connected PostgreSQL migrations. Unit tests do not replace those cloud checks.
 

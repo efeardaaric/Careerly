@@ -1,7 +1,16 @@
+import os
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+from app.core.config import Settings
+
+Settings.model_config["env_file"] = None
+os.environ["APP_ENV"] = "dev"
+os.environ["AUTH_MODE"] = "dev"
+os.environ["DATABASE_URL"] = "sqlite://"
 
 from app.db import session as database
 from app.db.models import Base
