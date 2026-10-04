@@ -3,6 +3,13 @@ import 'package:flutter/foundation.dart';
 /// Environment-aware configuration. No API keys belong in the client.
 enum AppEnvironment { dev, staging, production }
 
+/// Where CV analysis and job match run.
+///
+/// [api] calls the Careerly backend (default).
+/// [local] is the on-device rules engine, only when USE_LOCAL_ANALYSIS=true.
+/// [mock] is an explicit dev fixture and is forbidden in production.
+enum AnalysisEngine { local, mock, api }
+
 class ProductionConfigException implements Exception {
   ProductionConfigException(this.message);
   final String message;
@@ -14,7 +21,7 @@ class AppConfig {
   AppConfig._({
     required this.environment,
     required this.apiBaseUrl,
-    required this.useMockAnalysis,
+    required this.analysisEngine,
     required this.allowsMockAuth,
     required this.allowsMockBilling,
   });
@@ -24,9 +31,13 @@ class AppConfig {
   final AppEnvironment environment;
   final String apiBaseUrl;
 
-  /// When true, Flutter uses mock analysis / Job Match / Builder AI.
-  /// Production always forces false.
-  final bool useMockAnalysis;
+  /// Analysis backend. Production is always [AnalysisEngine.api].
+  final AnalysisEngine analysisEngine;
+
+  /// Fixture analysis is active only when [analysisEngine] is [AnalysisEngine.mock].
+  bool get useMockAnalysis => analysisEngine == AnalysisEngine.mock;
+
+  bool get useLocalAnalysis => analysisEngine == AnalysisEngine.local;
 
   /// Mock email/password auth is allowed only outside production.
   final bool allowsMockAuth;
@@ -85,24 +96,27 @@ class AppConfig {
           };
 
     const useMockDefine = String.fromEnvironment('USE_MOCK_ANALYSIS');
-    bool useMockAnalysis;
+    const useLocalDefine = String.fromEnvironment('USE_LOCAL_ANALYSIS');
+    final AnalysisEngine analysisEngine;
     if (environment == AppEnvironment.production) {
-      useMockAnalysis = false;
       if (useMockDefine.toLowerCase() == 'true') {
         throw ProductionConfigException(
           'USE_MOCK_ANALYSIS=true is forbidden when ENV=production.',
         );
       }
-    } else if (useMockDefine.isEmpty) {
-      useMockAnalysis = true;
+      analysisEngine = AnalysisEngine.api;
+    } else if (useMockDefine.toLowerCase() == 'true') {
+      analysisEngine = AnalysisEngine.mock;
+    } else if (useLocalDefine.toLowerCase() == 'true') {
+      analysisEngine = AnalysisEngine.local;
     } else {
-      useMockAnalysis = useMockDefine.toLowerCase() != 'false';
+      analysisEngine = AnalysisEngine.api;
     }
 
     validateProductionConfig(
       environment: environment,
       apiBaseUrl: apiBaseUrl,
-      useMockAnalysis: useMockAnalysis,
+      useMockAnalysis: analysisEngine == AnalysisEngine.mock,
     );
 
     final allowsMockAuth = environment != AppEnvironment.production;
@@ -112,7 +126,7 @@ class AppConfig {
     instance = AppConfig._(
       environment: environment,
       apiBaseUrl: apiBaseUrl,
-      useMockAnalysis: useMockAnalysis,
+      analysisEngine: analysisEngine,
       allowsMockAuth: allowsMockAuth,
       allowsMockBilling: allowsMockBilling,
     );
@@ -120,7 +134,7 @@ class AppConfig {
     if (kDebugMode) {
       debugPrint(
         'Careerly config: env=${environment.name} api=$apiBaseUrl '
-        'mockAnalysis=$useMockAnalysis mockAuth=$allowsMockAuth '
+        'engine=${analysisEngine.name} mockAuth=$allowsMockAuth '
         'mockBilling=$allowsMockBilling',
       );
     }

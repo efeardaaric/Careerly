@@ -18,6 +18,24 @@ class AppException implements Exception {
 
   factory AppException.fromDio(DioException error) {
     final status = error.response?.statusCode;
+    final parsed = _backendError(error.response?.data);
+    if (parsed != null) {
+      return AppException(
+        message: parsed.$2,
+        statusCode: status,
+        code: parsed.$1,
+        cause: error,
+      );
+    }
+    if (error.type == DioExceptionType.connectionError ||
+        error.type == DioExceptionType.connectionTimeout) {
+      return AppException(
+        message: "Couldn't connect to Careerly. Check your connection.",
+        statusCode: status,
+        code: 'NETWORK_ERROR',
+        cause: error,
+      );
+    }
     if (status == 429) {
       return AppException(
         message: 'Too many requests. Please wait a moment and try again.',
@@ -55,4 +73,38 @@ class AppException implements Exception {
 
   @override
   String toString() => 'AppException($code, $statusCode): $message';
+}
+
+(String, String)? _backendError(Object? data) {
+  if (data is! Map) return null;
+  final error = data['error'];
+  if (error is Map && error['code'] is String) {
+    final message = error['message'];
+    return (
+      error['code'] as String,
+      message is String ? message : 'Analysis failed.',
+    );
+  }
+  final detail = data['detail'];
+  if (detail is Map && detail['code'] is String) {
+    final message = detail['message'];
+    return (
+      detail['code'] as String,
+      message is String ? message : 'Analysis failed.',
+    );
+  }
+  return null;
+}
+
+/// Maps stable backend codes onto existing Analyze localization keys.
+String messageKeyForBackendCode(String? code) {
+  return switch (code) {
+    'CV_TOO_LARGE' => 'analyzeErrorTooLarge',
+    'UNSUPPORTED_CV_TYPE' => 'analyzeErrorExtension',
+    'SCANNED_DOCUMENT_DETECTED' => 'analyzeErrorScanned',
+    'CV_TEXT_EXTRACTION_FAILED' ||
+    'CV_EXTRACTION_FAILED' => 'analyzeErrorUnreadable',
+    'NETWORK_ERROR' => 'analyzeErrorUnavailable',
+    _ => 'analyzeErrorGeneric',
+  };
 }

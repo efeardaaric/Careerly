@@ -5,6 +5,7 @@ import '../../../core/config/app_config.dart';
 import '../domain/job_match_models.dart';
 import '../domain/job_match_repository.dart';
 import 'api_job_match_repository.dart';
+import 'local_job_match_repository.dart';
 import 'mock_job_match_fixture.dart';
 
 class MockJobMatchRepository implements JobMatchRepository {
@@ -28,8 +29,12 @@ class MockJobMatchRepository implements JobMatchRepository {
 }
 
 final jobMatchRepositoryProvider = Provider<JobMatchRepository>((ref) {
-  if (AppConfig.instance.useMockAnalysis) {
-    return MockJobMatchRepository();
+  switch (AppConfig.instance.analysisEngine) {
+    case AnalysisEngine.mock:
+      return MockJobMatchRepository();
+    case AnalysisEngine.local:
+      return LocalJobMatchRepository();
+    case AnalysisEngine.api:
+      return ApiJobMatchRepository(apiClient: ref.watch(apiClientProvider));
   }
-  return ApiJobMatchRepository(apiClient: ref.watch(apiClientProvider));
 });

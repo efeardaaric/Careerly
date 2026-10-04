@@ -89,18 +89,25 @@ class BillingController extends StateNotifier<BillingUiState> {
   final SubscriptionRepository _subscriptions;
   final PurchaseProvider _purchases;
   final String userId;
+  int _generation = 0;
+
+  bool _isCurrent(int generation) => mounted && generation == _generation;
 
   Future<void> refresh() async {
+    final generation = _generation;
     state = state.copyWith(isBusy: true, clearError: true);
     try {
       final snap = await _subscriptions.fetchEntitlements(userId: userId);
+      if (!_isCurrent(generation)) return;
       state = state.copyWith(entitlement: snap, isBusy: false);
     } catch (e) {
+      if (!_isCurrent(generation)) return;
       state = state.copyWith(isBusy: false, lastError: e.toString());
     }
   }
 
   Future<AccessDecision> precheck(FeatureId feature) async {
+    final generation = _generation;
     final requestId =
         'chk_${feature.name}_${DateTime.now().microsecondsSinceEpoch}';
     final decision = await _subscriptions.checkAccess(
@@ -108,6 +115,13 @@ class BillingController extends StateNotifier<BillingUiState> {
       featureId: feature,
       requestId: requestId,
     );
+    if (!_isCurrent(generation)) {
+      return AccessDecision(
+        featureId: feature,
+        allowed: false,
+        reason: AccessDeniedReason.offlineStale,
+      );
+    }
     if (!decision.allowed) {
       BillingAnalytics.limitReached(featureId: feature.name);
     } else if (decision.isNearLimit) {
@@ -131,14 +145,17 @@ class BillingController extends StateNotifier<BillingUiState> {
   }
 
   Future<void> loadProducts() async {
+    final generation = _generation;
     state = state.copyWith(purchasePhase: PurchasePhase.loadingProducts);
     try {
       final products = await _purchases.loadProducts();
+      if (!_isCurrent(generation)) return;
       state = state.copyWith(
         products: products,
         purchasePhase: PurchasePhase.idle,
       );
     } catch (e) {
+      if (!_isCurrent(generation)) return;
       state = state.copyWith(
         purchasePhase: PurchasePhase.error,
         lastError: e.toString(),
@@ -147,6 +164,7 @@ class BillingController extends StateNotifier<BillingUiState> {
   }
 
   Future<bool> purchase(String productId) async {
+    final generation = _generation;
     BillingAnalytics.purchaseStarted(productId: productId);
     state = state.copyWith(
       purchasePhase: PurchasePhase.purchasing,
@@ -154,6 +172,7 @@ class BillingController extends StateNotifier<BillingUiState> {
     );
     try {
       final result = await _purchases.purchase(productId);
+      if (!_isCurrent(generation)) return false;
       if (result.cancelled) {
         state = state.copyWith(purchasePhase: PurchasePhase.cancelled);
         return false;
@@ -177,6 +196,7 @@ class BillingController extends StateNotifier<BillingUiState> {
         purchaseToken: result.purchaseToken,
         transactionId: result.transactionId,
       );
+      if (!_isCurrent(generation)) return false;
       BillingAnalytics.purchaseSucceeded(productId: productId);
       state = state.copyWith(
         entitlement: snap,
@@ -184,6 +204,7 @@ class BillingController extends StateNotifier<BillingUiState> {
       );
       return true;
     } catch (e) {
+      if (!_isCurrent(generation)) return false;
       BillingAnalytics.purchaseFailed(productId: productId, code: 'exception');
       state = state.copyWith(
         purchasePhase: PurchasePhase.error,
@@ -194,9 +215,11 @@ class BillingController extends StateNotifier<BillingUiState> {
   }
 
   Future<bool> restore() async {
+    final generation = _generation;
     state = state.copyWith(purchasePhase: PurchasePhase.purchasing);
     try {
       final results = await _purchases.restore();
+      if (!_isCurrent(generation)) return false;
       if (results.isEmpty) {
         state = state.copyWith(
           purchasePhase: PurchasePhase.error,
@@ -213,12 +236,14 @@ class BillingController extends StateNotifier<BillingUiState> {
         transactionId: first.transactionId,
       );
       BillingAnalytics.purchaseRestored();
+      if (!_isCurrent(generation)) return false;
       state = state.copyWith(
         entitlement: snap,
         purchasePhase: PurchasePhase.restored,
       );
       return true;
     } catch (e) {
+      if (!_isCurrent(generation)) return false;
       state = state.copyWith(
         purchasePhase: PurchasePhase.error,
         lastError: e.toString(),
@@ -238,6 +263,12 @@ class BillingController extends StateNotifier<BillingUiState> {
       await refresh();
     }
   }
+
+  /// Prevents the previous user's entitlement from remaining visible after sign-out.
+  void clearUserData() {
+    _generation++;
+    state = const BillingUiState();
+  }
 }
 
 final purchaseProviderProvider = Provider<PurchaseProvider>((ref) {
@@ -249,25 +280,35 @@ final purchaseProviderProvider = Provider<PurchaseProvider>((ref) {
 
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
   final store = ref.watch(localStoreProvider);
-  if (AppConfig.instance.useMockAnalysis &&
-      AppConfig.instance.allowsMockBilling) {
-    return MockSubscriptionRepository(store: store);
+  if (AppConfig.instance.analysisEngine == AnalysisEngine.api) {
+    return ApiSubscriptionRepository(
+      apiClient: ref.watch(apiClientProvider),
+      store: store,
+    );
   }
-  return ApiSubscriptionRepository(
-    apiClient: ref.watch(apiClientProvider),
-    store: store,
+  final repository = MockSubscriptionRepository(store: store);
+  store.addUserDataResetListener(repository.clearUserData);
+  ref.onDispose(
+    () => store.removeUserDataResetListener(repository.clearUserData),
   );
+  return repository;
 });
 
 final billingControllerProvider =
     StateNotifierProvider<BillingController, BillingUiState>((ref) {
       final session = ref.watch(sessionProvider);
       final userId = session.email ?? 'anonymous';
-      return BillingController(
+      final controller = BillingController(
         subscriptionRepository: ref.watch(subscriptionRepositoryProvider),
         purchaseProvider: ref.watch(purchaseProviderProvider),
         userId: userId,
       );
+      final store = ref.watch(localStoreProvider);
+      store.addUserDataResetListener(controller.clearUserData);
+      ref.onDispose(
+        () => store.removeUserDataResetListener(controller.clearUserData),
+      );
+      return controller;
     });
 
 String newUsageRequestId(FeatureId feature) =>

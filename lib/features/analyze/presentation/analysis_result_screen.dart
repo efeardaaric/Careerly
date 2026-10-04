@@ -7,10 +7,12 @@ import '../../../app/router/app_router.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/careerly_identity.dart';
-import '../../billing/domain/billing_models.dart';
-import '../../billing/presentation/billing_gate.dart';
+import '../../../core/widgets/resume_template_gallery.dart';
+import '../../jobs/application/job_match_controller.dart';
+import '../../jobs/domain/job_match_models.dart';
 import '../application/analysis_controller.dart';
 import '../domain/analysis_models.dart';
+import '../domain/product_scores.dart';
 import 'widgets/finding_widgets.dart';
 
 class AnalysisResultScreen extends ConsumerWidget {
@@ -28,47 +30,125 @@ class AnalysisResultScreen extends ConsumerWidget {
     };
   }
 
-  String _confidenceLabel(AppLocalizations l10n, ParserConfidence c) {
-    return switch (c) {
-      ParserConfidence.high => l10n.parserConfidenceHigh,
-      ParserConfidence.medium => l10n.parserConfidenceMedium,
-      ParserConfidence.low => l10n.parserConfidenceLow,
+  String _bandLabel(AppLocalizations l10n, int score) {
+    return switch (scoreBand(score)) {
+      ScoreBand.excellent => l10n.productBandExcellent,
+      ScoreBand.strong => l10n.productBandStrong,
+      ScoreBand.developing => l10n.productBandDeveloping,
+      ScoreBand.needsWork => l10n.productBandNeedsWork,
     };
   }
 
-  String _statusFor(int score) {
-    if (score >= 80) return 'STRONG';
-    if (score >= 65) return 'GOOD';
-    if (score >= 40) return 'NEEDS WORK';
-    return 'CRITICAL';
+  String _sliceTitle(AppLocalizations l10n, String key) {
+    return switch (key) {
+      'contentImpact' => l10n.productQualityImpact,
+      'experiencePresentation' => l10n.productQualityExperience,
+      'skillsRelevance' => l10n.productQualitySkills,
+      'structureReadability' => l10n.productQualityStructure,
+      'languageGrammar' => l10n.productQualityWriting,
+      'basicsContact' => l10n.productQualityConcise,
+      _ => key,
+    };
   }
 
-  Future<void> _showAiInfo(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-    final ok = await ensureFeatureAccess(
-      context,
-      ref,
-      FeatureId.aiRewrite,
-      paywallContext: 'ai_rewrite',
-    );
-    if (!ok || !context.mounted) return;
-    await consumePendingUsage(ref, FeatureId.aiRewrite);
-    if (!context.mounted) return;
-    showDialog<void>(
+  void _showQuality(
+    BuildContext context,
+    AppLocalizations l10n,
+    ProductScores scores,
+  ) {
+    showModalBottomSheet<void>(
       context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
       builder: (context) {
-        return AlertDialog(
-          title: Text(l10n.findingImproveWithAi),
-          content: Text(l10n.findingImproveWithAiBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.close),
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.page,
+              AppSpacing.sm,
+              AppSpacing.page,
+              AppSpacing.lg,
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.productCvQuality,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                for (final slice in scores.quality) ...[
+                  Row(
+                    children: [
+                      Expanded(child: Text(_sliceTitle(l10n, slice.title))),
+                      Text('${slice.earned} / ${slice.possible}'),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  CareerlyProgressRow(
+                    value: slice.possible == 0
+                        ? 0
+                        : slice.earned / slice.possible,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              ],
+            ),
+          ),
         );
       },
     );
+  }
+
+  void _showAts(
+    BuildContext context,
+    AppLocalizations l10n,
+    ProductScores scores,
+    String? summary,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.page),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.productAtsReadability,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.productScoreDisclaimer,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (summary != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(summary, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+                if (scores.atsReadability != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    '${scores.atsReadability} / 100 · ${_bandLabel(l10n, scores.atsReadability!)}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Suggestions are free to review; the paywall applies when changes are applied.
+  void _showAiInfo(BuildContext context, WidgetRef ref) {
+    context.push(AppRoutes.optimize);
   }
 
   @override
@@ -82,7 +162,7 @@ class AnalysisResultScreen extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.analyzeResultsTitle)),
         body: CareerlyEmptyState(
-          label: 'NO RESULTS',
+          label: l10n.labelNoResults,
           headline: l10n.analyzeNoResultsYet,
           actionLabel: l10n.analyzeSelectCv,
           onAction: () => context.go(AppRoutes.analyze),
@@ -91,6 +171,14 @@ class AnalysisResultScreen extends ConsumerWidget {
     }
 
     final ats = analysis.category(ScoreCategoryId.atsCompatibility);
+    final scores = ProductScores.fromAnalysis(analysis);
+    final jobs = ref.watch(jobMatchControllerProvider);
+    final match = jobs.result?.resumeId == analysis.resumeId
+        ? jobs.result
+        : jobs.savedMatches.cast<JobMatchResult?>().firstWhere(
+            (item) => item?.resumeId == analysis.resumeId,
+            orElse: () => null,
+          );
     final top = analysis.topImprovements.isNotEmpty
         ? analysis.topImprovements.first
         : null;
@@ -106,27 +194,22 @@ class AnalysisResultScreen extends ConsumerWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.page,
-          AppSpacing.sm,
-          AppSpacing.page,
-          AppSpacing.xxl,
+        padding: EdgeInsets.only(
+          left: AppSpacing.pageInsets(context).left,
+          top: AppSpacing.sm,
+          right: AppSpacing.pageInsets(context).right,
+          bottom: AppSpacing.xxl,
         ),
         children: [
-          CareerlyScoreHero(
-            score: analysis.overallScore,
-            label: 'CV SCORE',
-            status: _statusFor(analysis.overallScore),
-            caption: l10n.analyzeOverallScoreBody(
-              _confidenceLabel(l10n, analysis.confidence),
-            ),
-            semanticLabel: l10n.scoreSemantic(analysis.overallScore),
+          _ScoreTrio(
+            scores: scores,
+            jobMatch: match?.overallMatchScore,
+            onQuality: () => _showQuality(context, l10n, scores),
+            onAts: () => _showAts(context, l10n, scores, ats?.summary),
+            onJob: () => context.go(AppRoutes.jobs),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            l10n.analyzeScoreDisclaimer,
-            style: theme.textTheme.bodySmall,
-          ),
+          Text(l10n.productScoreDisclaimer, style: theme.textTheme.bodySmall),
           if (top != null) ...[
             const SizedBox(height: AppSpacing.xl),
             CareerlyColorSection(
@@ -134,7 +217,7 @@ class AnalysisResultScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CareerlySectionLabel('01 — TOP PRIORITY'),
+                  CareerlySectionLabel(l10n.labelTopPriority),
                   const SizedBox(height: AppSpacing.sm),
                   Text(top.title, style: theme.textTheme.headlineMedium),
                   const SizedBox(height: AppSpacing.xs),
@@ -147,7 +230,7 @@ class AnalysisResultScreen extends ConsumerWidget {
                       onImproveInfo: () => _showAiInfo(context, ref),
                     ),
                     child: Text(
-                      'Improve this →',
+                      l10n.improveThis,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: AppColors.inkNavy,
                       ),
@@ -158,36 +241,60 @@ class AnalysisResultScreen extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: AppSpacing.xl),
+          CareerlySectionLabel(l10n.productBiggestOpportunities),
+          const SizedBox(height: AppSpacing.md),
+          for (final finding in analysis.topImprovements) ...[
+            Text(finding.title, style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.xxs),
+            Text(finding.evidence, style: theme.textTheme.bodySmall),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          const SizedBox(height: AppSpacing.lg),
           CareerlySectionLabel(l10n.analyzeBreakdown),
           const SizedBox(height: AppSpacing.md),
-          for (final category in analysis.categories) ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Text(
-                    _categoryLabel(l10n, category.id).toUpperCase(),
-                    style: theme.textTheme.labelMedium,
-                  ),
-                ),
-                Text(
-                  '${category.score}',
-                  style: theme.textTheme.headlineMedium,
-                ),
-              ],
+          for (var i = 0; i < analysis.categories.length; i++) ...[
+            Builder(
+              builder: (context) {
+                final category = analysis.categories[i];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _categoryLabel(l10n, category.id).toUpperCase(),
+                            style: theme.textTheme.labelMedium,
+                          ),
+                        ),
+                        Text(
+                          '${category.score}',
+                          style: theme.textTheme.headlineMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    CareerlyProgressRow(
+                      value: category.score / 100,
+                      animate: true,
+                      revealKey: '${analysis.id}:${category.id.name}',
+                      delay: Duration(milliseconds: 40 * i),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(category.summary, style: theme.textTheme.bodySmall),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: AppSpacing.xs),
-            CareerlyProgressRow(value: category.score / 100),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(category.summary, style: theme.textTheme.bodySmall),
-            const SizedBox(height: AppSpacing.lg),
           ],
           CareerlyColorSection(
             tone: CareerlySurfaceTone.mint,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CareerlySectionLabel("WHAT'S WORKING"),
+                CareerlySectionLabel(l10n.labelWhatsWorking),
                 const SizedBox(height: AppSpacing.md),
                 for (final item in analysis.workingWell) ...[
                   Row(
@@ -253,15 +360,7 @@ class AnalysisResultScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: l10n.analyzeImproveMyCv,
-            onPressed: () {
-              if (top != null) {
-                showFindingDetailSheet(
-                  context: context,
-                  finding: top,
-                  onImproveInfo: () => _showAiInfo(context, ref),
-                );
-              }
-            },
+            onPressed: () => context.push(AppRoutes.optimize),
           ),
           const SizedBox(height: AppSpacing.sm),
           AppButton(
@@ -269,6 +368,138 @@ class AnalysisResultScreen extends ConsumerWidget {
             variant: AppButtonVariant.secondary,
             onPressed: () => context.go(AppRoutes.home),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoreTrio extends StatelessWidget {
+  const _ScoreTrio({
+    required this.scores,
+    required this.jobMatch,
+    required this.onQuality,
+    required this.onAts,
+    required this.onJob,
+  });
+
+  final ProductScores scores;
+  final int? jobMatch;
+  final VoidCallback onQuality;
+  final VoidCallback onAts;
+  final VoidCallback onJob;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      children: [
+        CareerlyColorSection(
+          tone: CareerlySurfaceTone.mint,
+          onTap: onQuality,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.mint,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      l10n.productCvQuality,
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(color: AppColors.mint),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const SizedBox(height: 180, child: ResumeLayoutThumbnail()),
+              const SizedBox(height: 24),
+              Text(
+                '${scores.cvQuality}/100',
+                style: Theme.of(context).textTheme.displayMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _band(l10n, scores.cvQuality),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _ScoreCard(
+          label: l10n.productAtsReadability,
+          value: scores.atsReadability?.toString() ?? '—',
+          detail: scores.atsReadability == null
+              ? null
+              : _band(l10n, scores.atsReadability!),
+          onTap: onAts,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _ScoreCard(
+          label: l10n.productJobMatch,
+          value: jobMatch?.toString() ?? '—',
+          detail: jobMatch == null
+              ? l10n.productJobMatchLocked
+              : _band(l10n, jobMatch!),
+          onTap: onJob,
+        ),
+      ],
+    );
+  }
+
+  String _band(AppLocalizations l10n, int score) {
+    return switch (scoreBand(score)) {
+      ScoreBand.excellent => l10n.productBandExcellent,
+      ScoreBand.strong => l10n.productBandStrong,
+      ScoreBand.developing => l10n.productBandDeveloping,
+      ScoreBand.needsWork => l10n.productBandNeedsWork,
+    };
+  }
+}
+
+class _ScoreCard extends StatelessWidget {
+  const _ScoreCard({
+    required this.label,
+    required this.value,
+    required this.onTap,
+    this.detail,
+  });
+
+  final String label;
+  final String value;
+  final String? detail;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return CareerlyColorSection(
+      tone: CareerlySurfaceTone.neutral,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: theme.textTheme.labelMedium),
+                if (detail != null) ...[
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(detail!, style: theme.textTheme.bodySmall),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(value, style: theme.textTheme.headlineMedium),
         ],
       ),
     );

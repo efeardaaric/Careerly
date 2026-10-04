@@ -1,8 +1,52 @@
 import '../domain/job_match_models.dart';
+import '../../analyze/domain/analysis_models.dart';
 
 /// Builds a Job Match resume snapshot from the last analysis + known fixture
 /// evidence. Never invents skills beyond what analysis/fixture already showed.
 abstract final class ResumeSnapshotBuilder {
+  static ResumeSnapshot fromStored({
+    required String resumeId,
+    required String fileName,
+    int? overallScore,
+    CvEvidence? evidence,
+  }) {
+    if (evidence == null) {
+      return ResumeSnapshot(
+        resumeId: resumeId,
+        fileName: fileName,
+        overallScore: overallScore,
+        skills: const [],
+        experienceBullets: const [],
+        projectBullets: const [],
+        education: const [],
+        tools: const [],
+        languages: const [],
+      );
+    }
+    final skills = evidence
+        .linesFor('skills')
+        .expand((line) => line.split(RegExp(r'[,;•]')))
+        .map((s) => s.trim())
+        .where((s) => s.length > 1 && s.length < 40)
+        .toList();
+    return ResumeSnapshot(
+      resumeId: resumeId,
+      fileName: evidence.displayName,
+      overallScore: overallScore,
+      skills: skills,
+      tools: const [],
+      experienceBullets: evidence.bulletsFor(const ['experience', 'volunteer']),
+      projectBullets: evidence.bulletsFor(const ['projects']),
+      education: evidence.linesFor('education'),
+      languages: evidence.linesFor('languages'),
+      summary: evidence.summary,
+      sectionKeys: evidence.sections
+          .where((s) => s.status != SectionStatus.missing)
+          .map((s) => s.key)
+          .toList(),
+    );
+  }
+
   static ResumeSnapshot fromAnalyzedCv({
     required String resumeId,
     required String fileName,

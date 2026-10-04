@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_theme.dart';
+import '../motion/careerly_motion.dart';
 import 'app_button.dart';
 
 /// Uppercase editorial metadata label.
@@ -19,13 +20,14 @@ class CareerlySectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      text.toUpperCase(),
+      text,
       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: color ??
-                (light
-                    ? Colors.white.withValues(alpha: 0.72)
-                    : AppColors.secondaryText),
-          ),
+        color:
+            color ??
+            (light
+                ? Colors.white.withValues(alpha: 0.72)
+                : AppColors.secondaryText),
+      ),
     );
   }
 }
@@ -75,6 +77,7 @@ class CareerlyEditorialHeader extends StatelessWidget {
     required this.headline,
     this.supporting,
     this.trailing,
+    this.showBrand = true,
     this.background,
     this.padding = const EdgeInsets.fromLTRB(
       AppSpacing.page,
@@ -89,6 +92,7 @@ class CareerlyEditorialHeader extends StatelessWidget {
   final String headline;
   final String? supporting;
   final Widget? trailing;
+  final bool showBrand;
   final Color? background;
   final EdgeInsets padding;
   final bool light;
@@ -100,47 +104,72 @@ class CareerlyEditorialHeader extends StatelessWidget {
     final muted = light
         ? Colors.white.withValues(alpha: 0.78)
         : AppColors.secondaryText;
+    final horizontal = AppSpacing.pageInsets(context).left;
+    final resolvedPadding = EdgeInsets.fromLTRB(
+      horizontal,
+      padding.top,
+      horizontal,
+      padding.bottom,
+    );
 
     return ColoredBox(
-      color: background ?? Colors.transparent,
+      color: light ? AppColors.inkNavy : AppColors.background,
       child: Padding(
-        padding: padding,
+        padding: resolvedPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CareerlySectionLabel(label, light: light),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        headline,
-                        style: theme.textTheme.displayMedium?.copyWith(
-                          color: fg,
-                        ),
-                      ),
-                      if (supporting != null) ...[
-                        const SizedBox(height: AppSpacing.sm),
+            if (showBrand)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: AppColors.brandYellow,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: AppColors.primaryText,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          supporting!,
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                          'Careerly',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: fg,
+                          ),
+                        ),
+                        Text(
+                          label,
+                          style: theme.textTheme.bodySmall?.copyWith(
                             color: muted,
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                if (trailing != null) ...[
-                  const SizedBox(width: AppSpacing.md),
-                  trailing!,
                 ],
-              ],
+              ),
+            if (showBrand) const SizedBox(height: AppSpacing.lg),
+            Text(
+              headline.replaceAll('\n', ' '),
+              style: theme.textTheme.displayMedium?.copyWith(color: fg),
             ),
+            if (supporting != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                supporting!,
+                style: theme.textTheme.bodyMedium?.copyWith(color: muted),
+              ),
+            ],
           ],
         ),
       ),
@@ -177,15 +206,15 @@ class CareerlyColorSection extends StatelessWidget {
   final VoidCallback? onTap;
 
   Color get _bg => switch (tone) {
-        CareerlySurfaceTone.neutral => AppColors.surface,
-        CareerlySurfaceTone.cream => AppColors.cream,
-        CareerlySurfaceTone.mint => AppColors.mint.withValues(alpha: 0.28),
-        CareerlySurfaceTone.coral => AppColors.softCoral,
-        CareerlySurfaceTone.lavender => AppColors.lavender,
-        CareerlySurfaceTone.ice => AppColors.iceBlue,
-        CareerlySurfaceTone.navy => AppColors.inkNavy,
-        CareerlySurfaceTone.cobalt => AppColors.cobalt,
-      };
+    CareerlySurfaceTone.neutral => AppColors.surface,
+    CareerlySurfaceTone.cream => AppColors.cream,
+    CareerlySurfaceTone.mint => AppColors.iceBlue,
+    CareerlySurfaceTone.coral => AppColors.softCoral,
+    CareerlySurfaceTone.lavender => AppColors.lavender,
+    CareerlySurfaceTone.ice => AppColors.iceBlue,
+    CareerlySurfaceTone.navy => AppColors.inkNavy,
+    CareerlySurfaceTone.cobalt => AppColors.cobalt,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -226,6 +255,7 @@ class CareerlyScoreHero extends StatelessWidget {
     this.dark = true,
     this.animate = true,
     this.semanticLabel,
+    this.revealId,
   });
 
   final int? score;
@@ -236,6 +266,9 @@ class CareerlyScoreHero extends StatelessWidget {
   final bool dark;
   final bool animate;
   final String? semanticLabel;
+
+  /// When set, the count-up plays once for this id, not on later rebuilds.
+  final String? revealId;
 
   @override
   Widget build(BuildContext context) {
@@ -257,26 +290,21 @@ class CareerlyScoreHero extends StatelessWidget {
     );
 
     if (animate && score != null) {
-      number = TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: score!.toDouble()),
-        duration: AppMotion.score,
-        curve: Curves.easeOutCubic,
-        builder: (context, value, _) {
-          return Text(
-            value.round().toString(),
-            style: theme.textTheme.displayLarge?.copyWith(
-              fontSize: 64,
-              height: 0.95,
-              letterSpacing: -2,
-              color: fg,
-            ),
-          );
-        },
+      number = _OnceCount(
+        value: score!.toDouble(),
+        revealId: revealId,
+        style: theme.textTheme.displayLarge?.copyWith(
+          fontSize: 64,
+          height: 0.95,
+          letterSpacing: -2,
+          color: fg,
+        ),
       );
     }
 
     return Semantics(
-      label: semanticLabel ??
+      label:
+          semanticLabel ??
           (score == null ? 'Score unavailable' : 'Score $score of $max'),
       child: CareerlyColorSection(
         tone: dark ? CareerlySurfaceTone.navy : CareerlySurfaceTone.ice,
@@ -303,6 +331,17 @@ class CareerlyScoreHero extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
+                if (MediaQuery.sizeOf(context).width >= 390) ...[
+                  CareerlyScoreArc(
+                    value: score == null ? 0 : score! / max,
+                    size: 56,
+                    color: dark ? AppColors.mint : AppColors.cobalt,
+                    trackColor: dark
+                        ? Colors.white.withValues(alpha: 0.16)
+                        : AppColors.border,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
                 if (status != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -346,6 +385,100 @@ class CareerlyScoreHero extends StatelessWidget {
 }
 
 /// Compact editorial metric for lists / home.
+class _OnceCount extends StatefulWidget {
+  const _OnceCount({required this.value, required this.style, this.revealId});
+
+  final double value;
+  final TextStyle? style;
+  final String? revealId;
+
+  @override
+  State<_OnceCount> createState() => _OnceCountState();
+}
+
+class _OnceCountState extends State<_OnceCount> {
+  late final bool _play;
+
+  @override
+  void initState() {
+    super.initState();
+    _play = !CareerlyReveal.already(widget.revealId);
+    CareerlyReveal.mark(widget.revealId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_play || careerlyReduceMotion(context)) {
+      return Text(widget.value.round().toString(), style: widget.style);
+    }
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: widget.value),
+      duration: AppMotion.score,
+      curve: AppMotion.enter,
+      builder: (context, value, _) {
+        return Text(value.round().toString(), style: widget.style);
+      },
+    );
+  }
+}
+
+class _OnceBar extends StatefulWidget {
+  const _OnceBar({
+    required this.value,
+    required this.color,
+    required this.trackColor,
+    required this.height,
+    this.revealKey,
+    this.delay = Duration.zero,
+  });
+
+  final double value;
+  final Color color;
+  final Color trackColor;
+  final double height;
+  final String? revealKey;
+  final Duration delay;
+
+  @override
+  State<_OnceBar> createState() => _OnceBarState();
+}
+
+class _OnceBarState extends State<_OnceBar> {
+  late final bool _play;
+
+  @override
+  void initState() {
+    super.initState();
+    _play = !CareerlyReveal.already(widget.revealKey);
+    CareerlyReveal.mark(widget.revealKey);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_play || careerlyReduceMotion(context)) {
+      return _track(widget.value);
+    }
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: widget.value),
+      duration: AppMotion.slow + widget.delay,
+      curve: AppMotion.enter,
+      builder: (context, value, _) => _track(value),
+    );
+  }
+
+  Widget _track(double amount) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(widget.height),
+      child: LinearProgressIndicator(
+        value: amount,
+        minHeight: widget.height,
+        backgroundColor: widget.trackColor,
+        color: widget.color,
+      ),
+    );
+  }
+}
+
 class CareerlyMetric extends StatelessWidget {
   const CareerlyMetric({
     super.key,
@@ -368,7 +501,8 @@ class CareerlyMetric extends StatelessWidget {
     final c = color ?? AppColors.cobalt;
     final size = compact ? 28.0 : 40.0;
     return Semantics(
-      label: semanticLabel ??
+      label:
+          semanticLabel ??
           (score == null ? 'Score unavailable' : 'Score $score of $max'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,6 +555,9 @@ class CareerlyProgressRow extends StatelessWidget {
     this.color = AppColors.cobalt,
     this.trackColor,
     this.height = 3,
+    this.animate = false,
+    this.revealKey,
+    this.delay = Duration.zero,
   });
 
   /// Null = indeterminate (loading).
@@ -428,13 +565,29 @@ class CareerlyProgressRow extends StatelessWidget {
   final Color color;
   final Color? trackColor;
   final double height;
+  final bool animate;
+  final String? revealKey;
+  final Duration delay;
 
   @override
   Widget build(BuildContext context) {
+    final target = value?.clamp(0.0, 1.0);
+    if (!animate || target == null) return _bar(target);
+    return _OnceBar(
+      value: target,
+      revealKey: revealKey,
+      delay: delay,
+      color: color,
+      trackColor: trackColor ?? AppColors.border,
+      height: height,
+    );
+  }
+
+  Widget _bar(double? amount) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(height),
       child: LinearProgressIndicator(
-        value: value?.clamp(0.0, 1.0),
+        value: amount,
         minHeight: height,
         backgroundColor: trackColor ?? AppColors.border,
         color: color,
@@ -538,7 +691,8 @@ class CareerlyTimeline extends StatelessWidget {
                           child: Container(
                             width: 1.5,
                             margin: const EdgeInsets.symmetric(vertical: 4),
-                            color: steps[i].state ==
+                            color:
+                                steps[i].state ==
                                     CareerlyTimelineState.completed
                                 ? AppColors.mint
                                 : AppColors.border,
@@ -560,8 +714,8 @@ class CareerlyTimeline extends StatelessWidget {
                         Text(
                           steps[i].title,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: steps[i].state ==
-                                    CareerlyTimelineState.upcoming
+                            color:
+                                steps[i].state == CareerlyTimelineState.upcoming
                                 ? AppColors.secondaryText
                                 : AppColors.primaryText,
                           ),
@@ -602,7 +756,9 @@ class _TimelineDot extends StatelessWidget {
     final fg = state == CareerlyTimelineState.upcoming
         ? AppColors.secondaryText
         : Colors.white;
-    return Container(
+    return AnimatedContainer(
+      duration: AppMotion.standard,
+      curve: AppMotion.enter,
       width: 28,
       height: 28,
       alignment: Alignment.center,
@@ -612,11 +768,8 @@ class _TimelineDot extends StatelessWidget {
       ),
       child: Text(
         index.toString().padLeft(2, '0'),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: fg,
-              letterSpacing: 0,
-              fontSize: 10,
-            ),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: fg, letterSpacing: 0, fontSize: 10),
       ),
     );
   }
@@ -651,13 +804,15 @@ class CareerlyDocumentPreview extends StatelessWidget {
         children: [
           Container(height: 4, width: width * 0.45, color: accent),
           const SizedBox(height: 8),
-          for (var i = 0; i < 5; i++) ...[
+          // Keep the preview legible at the compact heights used by page
+          // headers. Five rows plus fixed gaps used to overflow by a few px.
+          for (var i = 0; i < 4; i++) ...[
             Container(
               height: 3,
               width: width * (i.isEven ? 0.7 : 0.55),
               color: AppColors.inkNavy.withValues(alpha: 0.18),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 4),
           ],
           const Spacer(),
           Container(height: 3, width: width * 0.35, color: accent),
@@ -696,16 +851,14 @@ class CareerlyAiAction extends StatelessWidget {
             children: [
               Text(
                 '✦',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.inkNavy,
-                    ),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(color: AppColors.inkNavy),
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 label,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.inkNavy,
-                    ),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(color: AppColors.inkNavy),
               ),
             ],
           ),
@@ -775,24 +928,37 @@ class CareerlyEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: AppColors.border),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            number,
-            style: theme.textTheme.displayLarge?.copyWith(
-              fontSize: 56,
-              color: AppColors.iceBlue,
-              height: 1,
+          Container(
+            width: 64,
+            height: 64,
+            decoration: const BoxDecoration(
+              color: AppColors.cream,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              number == '!'
+                  ? Icons.error_outline_rounded
+                  : Icons.description_outlined,
+              color: AppColors.primaryText,
+              size: 28,
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.lg),
           CareerlySectionLabel(label),
           const SizedBox(height: AppSpacing.sm),
-          Text(headline, style: theme.textTheme.headlineLarge),
+          Text(headline, style: theme.textTheme.headlineMedium),
           if (body != null) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(body!, style: theme.textTheme.bodyMedium),

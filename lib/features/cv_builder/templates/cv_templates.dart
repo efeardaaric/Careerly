@@ -1,6 +1,6 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'package:flutter/services.dart';
 
 import '../domain/resume_document.dart';
 
@@ -18,8 +18,12 @@ class CvFontBundle {
 
   static Future<CvFontBundle> load() async {
     // Noto covers TR/EN Latin Extended for searchable PDF text.
-    final regular = await PdfGoogleFonts.notoSansRegular();
-    final bold = await PdfGoogleFonts.notoSansBold();
+    final regular = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'),
+    );
+    final bold = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'),
+    );
     return CvFontBundle(regular: regular, bold: bold);
   }
 }

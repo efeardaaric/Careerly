@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
 import '../../../app/session/session_controller.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/careerly_identity.dart';
@@ -69,31 +70,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
-  Future<void> _social(String provider) async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final repo = ref.read(authRepositoryProvider);
-      final result = await repo.signInWithProvider(provider);
-      await ref
-          .read(sessionProvider.notifier)
-          .signInMock(
-            email: result.email,
-            displayName: result.displayName,
-            accessToken: result.accessToken,
-          );
-      if (!mounted) return;
-      context.go(AppRoutes.personalization);
-    } catch (_) {
-      final l10n = AppLocalizations.of(context);
-      setState(() => _error = l10n.authGenericError);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -124,6 +100,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                if (AppConfig.instance.allowsMockAuth) ...[
                 CareerlyColorSection(
                   tone: CareerlySurfaceTone.cream,
                   padding: const EdgeInsets.symmetric(
@@ -148,36 +125,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                AppButton(
-                  label: l10n.authContinueWithGoogle,
-                  variant: AppButtonVariant.secondary,
-                  icon: Icons.account_circle_outlined,
-                  onPressed: _loading ? null : () => _social('google'),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                AppButton(
-                  label: l10n.authContinueWithApple,
-                  variant: AppButtonVariant.secondary,
-                  icon: Icons.apple,
-                  onPressed: _loading ? null : () => _social('apple'),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
-                  children: [
-                    const Expanded(child: CareerlyHairline()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                      ),
-                      child: Text(
-                        l10n.authOrEmail,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ),
-                    const Expanded(child: CareerlyHairline()),
-                  ],
-                ),
+                ],
                 const SizedBox(height: AppSpacing.lg),
                 AppTextField(
                   controller: _emailController,

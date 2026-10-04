@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../analyze/domain/analysis_models.dart';
+
 enum CvTemplateId { classicAts, modernAts, student, tech }
 
 enum CvDocumentLanguage { en, tr }
@@ -188,6 +190,83 @@ class ResumeDocument extends Equatable {
               : 'Volunteer · Coding Club mentor',
         ),
       ],
+      customSections: const [],
+      sectionOrder: defaultSectionOrder,
+      sectionVisibility: {for (final k in defaultSectionOrder) k: true},
+      createdAt: now,
+      updatedAt: now,
+      sourceAnalysisId: analysisId,
+    );
+  }
+
+  /// Builds a version from parsed CV facts. Does not copy the sample fixture.
+  factory ResumeDocument.fromEvidence({
+    required CvEvidence evidence,
+    required String analysisId,
+    CvDocumentLanguage language = CvDocumentLanguage.en,
+    CvTemplateId templateId = CvTemplateId.classicAts,
+  }) {
+    final now = DateTime.now().toUtc();
+    final skillNames = evidence
+        .linesFor('skills')
+        .expand((line) => line.split(RegExp(r'[,;•]')))
+        .map((s) => s.trim())
+        .where((s) => s.length > 1 && s.length < 40)
+        .toList();
+    final experienceBullets = evidence.bulletsFor(const ['experience']);
+    final projectLines = evidence.linesFor('projects');
+    return ResumeDocument(
+      id: const Uuid().v4(),
+      title: evidence.displayName,
+      language: language,
+      templateId: templateId,
+      personal: PersonalDetails(
+        fullName: evidence.fullName ?? '',
+        email: evidence.email ?? '',
+        phone: evidence.phone ?? '',
+        location: evidence.location ?? '',
+        linkedin: evidence.linkedIn ?? '',
+        website: evidence.portfolio ?? evidence.github ?? '',
+      ),
+      summary: evidence.summary ?? '',
+      education: [
+        for (final line in evidence.linesFor('education'))
+          EducationEntry(id: const Uuid().v4(), school: line),
+      ],
+      experience: [
+        if (experienceBullets.isNotEmpty)
+          ExperienceEntry(
+            id: const Uuid().v4(),
+            bullets: experienceBullets,
+          ),
+      ],
+      projects: [
+        if (projectLines.isNotEmpty)
+          ProjectEntry(
+            id: const Uuid().v4(),
+            name: projectLines.first,
+            bullets: projectLines.length > 1
+                ? projectLines.skip(1).toList()
+                : projectLines,
+          ),
+      ],
+      skillGroups: [
+        if (skillNames.isNotEmpty)
+          SkillGroup(
+            id: const Uuid().v4(),
+            label: language == CvDocumentLanguage.tr ? 'Yetenekler' : 'Skills',
+            skills: skillNames,
+          ),
+      ],
+      languages: [
+        for (final line in evidence.linesFor('languages'))
+          LanguageEntry(id: const Uuid().v4(), name: line),
+      ],
+      certifications: [
+        for (final line in evidence.linesFor('certifications'))
+          CertificationEntry(id: const Uuid().v4(), name: line),
+      ],
+      awards: const [],
       customSections: const [],
       sectionOrder: defaultSectionOrder,
       sectionVisibility: {for (final k in defaultSectionOrder) k: true},

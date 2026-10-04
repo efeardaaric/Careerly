@@ -9,8 +9,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy import delete
+
 from app.core.config import Settings, get_settings
 from app.core.security import get_logger
+from app.db.billing import billing_session, insert_for
+from app.db.models import UserSubscription
 from app.schemas.entitlements import (
     SubscriptionStatus,
     SubscriptionTier,
@@ -99,20 +103,22 @@ class ProductionSubscriptionVerifierStub(SubscriptionVerifier):
         )
 
 
-# Simple in-memory subscription state for mock users (dev).
-_USER_SUBS: dict[str, dict] = {}
-
-
 def get_user_subscription(user_id: str) -> tuple[SubscriptionTier, SubscriptionStatus, str | None, str | None]:
-    row = _USER_SUBS.get(user_id)
-    if not row:
-        return SubscriptionTier.free, SubscriptionStatus.none, None, None
-    return (
-        SubscriptionTier(row["tier"]),
-        SubscriptionStatus(row["status"]),
-        row.get("productId"),
-        row.get("expiresAt"),
-    )
+    with billing_session() as session:
+        row = session.get(UserSubscription, user_id)
+        if not row:
+            return SubscriptionTier.free, SubscriptionStatus.none, None, None
+        status = SubscriptionStatus(row.status)
+        if row.expires_at:
+            expiry = datetime.fromisoformat(row.expires_at)
+            if expiry.tzinfo is None:
+                expiry = expiry.replace(tzinfo=UTC)
+            if expiry <= datetime.now(UTC):
+                status = SubscriptionStatus.expired
+        tier = SubscriptionTier(row.tier)
+        if status != SubscriptionStatus.active:
+            tier = SubscriptionTier.free
+        return tier, status, row.product_id, row.expires_at
 
 
 def set_user_subscription(
@@ -123,16 +129,20 @@ def set_user_subscription(
     product_id: str | None,
     expires_at: str | None,
 ) -> None:
-    _USER_SUBS[user_id] = {
-        "tier": tier.value,
-        "status": status.value,
-        "productId": product_id,
-        "expiresAt": expires_at,
+    values = {
+        "tier": tier.value, "status": status.value,
+        "product_id": product_id, "expires_at": expires_at,
     }
+    with billing_session() as session:
+        session.execute(
+            insert_for(session, UserSubscription).values(user_id=user_id, **values)
+            .on_conflict_do_update(index_elements=["user_id"], set_=values)
+        )
 
 
 def reset_subscriptions_for_tests() -> None:
-    _USER_SUBS.clear()
+    with billing_session() as session:
+        session.execute(delete(UserSubscription))
 
 
 def get_subscription_verifier(settings: Settings | None = None) -> SubscriptionVerifier:

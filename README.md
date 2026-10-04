@@ -8,14 +8,16 @@ Calm, bilingual (EN/TR) career companion for CV readiness, ATS clarity, job matc
 
 - **Phase 1:** Splash → language → onboarding → mock auth → personalization → home shell.
 - **Phase 2:** CV upload UI, mock analysis pipeline, section review, readiness results.
-- **Phase 3:** FastAPI analysis engine + `ApiResumeAnalysisRepository` (mock still default).
+- **Phase 3:** FastAPI analysis engine + `ApiResumeAnalysisRepository` (API is the default).
 - **Phase 4:** Job Match engine — paste JD, alignment score, skill evidence, Optimize CV suggestions.
 - **Phase 5:** Professional CV Builder — `ResumeDocument` → section editors → ATS templates → searchable PDF; AI rewrite/translate; structured Check CV.
 - **Phase 6:** Monetization — entitlements, Free/Pro limits, paywall, usage metering, mock purchases.
+- **Applications / optimization:** Local application tracking, CV versions, deterministic improvement suggestions, guarded AI rewrite.
+- **Hardening:** Central session cleanup, server CV limits, durable billing counters/subscriptions, target-field forwarding, bundled Turkish PDF fonts. See `docs/HARDENING_STATUS.md`.
 - **Phase 8.1:** RC1 blocker fixes — production fail-closed config/auth/billing, backend Bearer auth + IDOR, release docs. **READY FOR INTERNAL TESTING** (not store submission).
 - **UI/UX polish:** Visual-only pass — design tokens, shared processing view, reduced card density, signature-screen hierarchy (see polish report in agent docs store).
 
-Not included: OCR, cover letters, interview AI, scraping, credits marketplace, application tracker, store publishing.
+Not included: OCR, cover letters, interview AI, scraping, credits marketplace, real production login/purchases, store publishing.
 
 ## Stack
 
@@ -26,21 +28,24 @@ Not included: OCR, cover letters, interview AI, scraping, credits marketplace, a
 
 ```bash
 flutter pub get
-# Mock analysis + Job Match + Builder AI (default)
-flutter run -d chrome --web-port=43123 --dart-define=ENV=dev --dart-define=USE_MOCK_ANALYSIS=true
-
-# Real API
+# Backend scoring (default). Start the API first; see backend/README.md.
 flutter run -d chrome --web-port=43123 \
   --dart-define=ENV=dev \
-  --dart-define=USE_MOCK_ANALYSIS=false \
   --dart-define=API_BASE_URL=http://127.0.0.1:8787
+
+# Explicit fixture data, development only
+flutter run --dart-define=USE_MOCK_ANALYSIS=true
+
+# On-device rules engine, no backend
+flutter run --dart-define=USE_LOCAL_ANALYSIS=true
 ```
 
 | Define | Purpose |
 |--------|---------|
 | `ENV` | `dev` / `staging` / `production` |
-| `API_BASE_URL` | Backend origin (dev default `http://127.0.0.1:8787`) |
-| `USE_MOCK_ANALYSIS` | `true` (default) or `false` for API (analysis + Job Match + Builder AI) |
+| `API_BASE_URL` | Backend origin. Dev default `http://127.0.0.1:8787`. Android emulator: `http://10.0.2.2:8787`. |
+| `USE_MOCK_ANALYSIS` | `true` selects fixture analysis. Forbidden when `ENV=production`. |
+| `USE_LOCAL_ANALYSIS` | `true` selects the on-device rules engine. |
 
 ## Run backend
 
@@ -67,6 +72,7 @@ Builder persistence: LocalStore keys `builder_resume_ids` / `builder_resume_<id>
 ## Tests
 
 ```bash
-flutter test test/builder/
-cd backend && pytest tests/test_builder.py -q
+flutter analyze --no-pub
+flutter test --no-pub
+cd backend && pytest -q && ruff check app tests
 ```

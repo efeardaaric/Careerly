@@ -665,7 +665,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeCvCardScoredBody.
   ///
   /// In en, this message translates to:
-  /// **'Last scan {date}. Careerly readiness score based on your content — not an acceptance promise.'**
+  /// **'Last analysis {date}. Scores reflect your CV content, not a hiring guarantee.'**
   String homeCvCardScoredBody(String date);
 
   /// No description provided for @homeStartWithCv.
@@ -845,13 +845,13 @@ abstract class AppLocalizations {
   /// No description provided for @analyzePrivacyNote.
   ///
   /// In en, this message translates to:
-  /// **'Your CV stays on this device during this demo. A future cloud analysis will use encrypted transit and never invent experience.'**
+  /// **'Your CV is analyzed on this device. Careerly does not invent experience, skills, or metrics.'**
   String get analyzePrivacyNote;
 
   /// No description provided for @analyzeScoreDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'This is Careerly’s structured readiness score — not an acceptance probability or a universal ATS standard.'**
+  /// **'This is Careerly\'s structured readiness score — not an acceptance probability or a universal ATS standard.'**
   String get analyzeScoreDisclaimer;
 
   /// No description provided for @analyzePickFailed.
@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyzeErrorTooLarge.
   ///
   /// In en, this message translates to:
-  /// **'File is too large. Maximum size is 10 MB.'**
+  /// **'This file is larger than 10 MB.'**
   String get analyzeErrorTooLarge;
 
   /// No description provided for @analyzeErrorEmpty.
@@ -893,8 +893,20 @@ abstract class AppLocalizations {
   /// No description provided for @analyzeErrorGeneric.
   ///
   /// In en, this message translates to:
-  /// **'We could not analyze that file. Please try again.'**
+  /// **'Analysis failed. Try again.'**
   String get analyzeErrorGeneric;
+
+  /// No description provided for @analyzeErrorUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t read text from this CV.'**
+  String get analyzeErrorUnreadable;
+
+  /// No description provided for @analyzeErrorScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned CV detected. OCR support is not available in this build.'**
+  String get analyzeErrorScanned;
 
   /// No description provided for @analyzeProcessingTitle.
   ///
@@ -911,7 +923,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyzeProcessingHint.
   ///
   /// In en, this message translates to:
-  /// **'Mock analysis uses sample insights for an early-career profile.'**
+  /// **'Scores come from Careerly\'s on-device rules. The same CV produces the same score.'**
   String get analyzeProcessingHint;
 
   /// No description provided for @analyzeStageReading.
@@ -985,6 +997,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Needs review'**
   String get sectionStatusNeedsReview;
+
+  /// No description provided for @sectionStatusLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Low confidence'**
+  String get sectionStatusLowConfidence;
+
+  /// No description provided for @sectionStatusUserCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected'**
+  String get sectionStatusUserCorrected;
+
+  /// No description provided for @sectionChangeType.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is…'**
+  String get sectionChangeType;
 
   /// No description provided for @sectionMarkDetected.
   ///
@@ -1145,7 +1175,7 @@ abstract class AppLocalizations {
   /// No description provided for @scoreCategorySkills.
   ///
   /// In en, this message translates to:
-  /// **'Skills relevance'**
+  /// **'Skills presentation'**
   String get scoreCategorySkills;
 
   /// No description provided for @scoreCategoryStructure.
@@ -1679,7 +1709,7 @@ abstract class AppLocalizations {
   /// No description provided for @builderHomeBody.
   ///
   /// In en, this message translates to:
-  /// **'Edit semantic sections first. Templates only render — they never own your content.'**
+  /// **'Choose a template, tell your story, and create a CV that is ready to share.'**
   String get builderHomeBody;
 
   /// No description provided for @builderCreateNew.
@@ -2507,7 +2537,7 @@ abstract class AppLocalizations {
   /// No description provided for @paywallHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Keep improving with Pro'**
+  /// **'Build every application\nwith more clarity.'**
   String get paywallHeadline;
 
   /// No description provided for @paywallBody.
@@ -2653,6 +2683,906 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @homeReadyNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for\nyour next move,\n{name}?'**
+  String homeReadyNamed(String name);
+
+  /// No description provided for @homeReadyPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for\nyour next move?'**
+  String get homeReadyPlain;
+
+  /// No description provided for @profileFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get profileFirstName;
+
+  /// No description provided for @profileUsageAnalyses.
+  ///
+  /// In en, this message translates to:
+  /// **'CV analyses'**
+  String get profileUsageAnalyses;
+
+  /// No description provided for @profileUsageMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Job matches'**
+  String get profileUsageMatches;
+
+  /// No description provided for @profileUsageMeter.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} / {limit} used'**
+  String profileUsageMeter(int used, int limit);
+
+  /// No description provided for @jobsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get jobsDelete;
+
+  /// No description provided for @productCvQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'CV Quality'**
+  String get productCvQuality;
+
+  /// No description provided for @productAtsReadability.
+  ///
+  /// In en, this message translates to:
+  /// **'ATS Readability'**
+  String get productAtsReadability;
+
+  /// No description provided for @productJobMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Job Match'**
+  String get productJobMatch;
+
+  /// No description provided for @productJobMatchLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a target job to unlock'**
+  String get productJobMatchLocked;
+
+  /// No description provided for @productScoreDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Careerly analysis of CV structure, content, and job requirements. Not an employer\'s ATS score.'**
+  String get productScoreDisclaimer;
+
+  /// No description provided for @productBiggestOpportunities.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest opportunities'**
+  String get productBiggestOpportunities;
+
+  /// No description provided for @productBandNeedsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get productBandNeedsWork;
+
+  /// No description provided for @productBandDeveloping.
+  ///
+  /// In en, this message translates to:
+  /// **'Developing'**
+  String get productBandDeveloping;
+
+  /// No description provided for @productBandStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get productBandStrong;
+
+  /// No description provided for @productBandExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get productBandExcellent;
+
+  /// No description provided for @productQualityImpact.
+  ///
+  /// In en, this message translates to:
+  /// **'Impact and achievements'**
+  String get productQualityImpact;
+
+  /// No description provided for @productQualityExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience quality'**
+  String get productQualityExperience;
+
+  /// No description provided for @productQualitySkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills and tools'**
+  String get productQualitySkills;
+
+  /// No description provided for @productQualityStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Structure and completeness'**
+  String get productQualityStructure;
+
+  /// No description provided for @productQualityWriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing quality'**
+  String get productQualityWriting;
+
+  /// No description provided for @productQualityConcise.
+  ///
+  /// In en, this message translates to:
+  /// **'Conciseness'**
+  String get productQualityConcise;
+
+  /// No description provided for @optimizeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve your CV'**
+  String get optimizeTitle;
+
+  /// No description provided for @optimizeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Careerly checked each experience and project line. Nothing changes until you accept it, and scores update only after Careerly re-checks the edited CV.'**
+  String get optimizeIntro;
+
+  /// No description provided for @optimizeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No line-level fixes found. Your experience and project lines pass Careerly\'s checks.'**
+  String get optimizeEmpty;
+
+  /// No description provided for @optimizeNoCv.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze a CV first to see suggestions.'**
+  String get optimizeNoCv;
+
+  /// No description provided for @optimizeImpactHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH IMPACT'**
+  String get optimizeImpactHigh;
+
+  /// No description provided for @optimizeImpactMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'MEDIUM IMPACT'**
+  String get optimizeImpactMedium;
+
+  /// No description provided for @optimizeImpactLow.
+  ///
+  /// In en, this message translates to:
+  /// **'SMALL FIX'**
+  String get optimizeImpactLow;
+
+  /// No description provided for @optimizeKindWeakOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead with what you did'**
+  String get optimizeKindWeakOpening;
+
+  /// No description provided for @optimizeKindFirstPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop the first person'**
+  String get optimizeKindFirstPerson;
+
+  /// No description provided for @optimizeKindTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorten this line'**
+  String get optimizeKindTooLong;
+
+  /// No description provided for @optimizeKindNoMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a real result'**
+  String get optimizeKindNoMetric;
+
+  /// No description provided for @optimizeKindFormatting.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean up wording'**
+  String get optimizeKindFormatting;
+
+  /// No description provided for @optimizeWhyWeakOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Phrases like \"responsible for\" describe duties, not contribution. An action verb makes your part clear.'**
+  String get optimizeWhyWeakOpening;
+
+  /// No description provided for @optimizeWhyFirstPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'CV lines usually start with the action. Removing \"I\" keeps them tight.'**
+  String get optimizeWhyFirstPerson;
+
+  /// No description provided for @optimizeWhyTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Long lines are skimmed. One idea per line is easier to read.'**
+  String get optimizeWhyTooLong;
+
+  /// No description provided for @optimizeWhyNoMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'A number you can verify (people, items, time saved) makes impact concrete.'**
+  String get optimizeWhyNoMetric;
+
+  /// No description provided for @optimizeWhyFormatting.
+  ///
+  /// In en, this message translates to:
+  /// **'Small spacing and wording fixes. Meaning stays the same.'**
+  String get optimizeWhyFormatting;
+
+  /// No description provided for @optimizeQuestionOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you deliver or change here? Write it in your own words — Careerly won\'t invent it.'**
+  String get optimizeQuestionOutcome;
+
+  /// No description provided for @optimizeQuestionMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you know roughly how many people, posts, items, or hours this involved? Only add numbers you can stand behind.'**
+  String get optimizeQuestionMetric;
+
+  /// No description provided for @optimizeOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get optimizeOriginal;
+
+  /// No description provided for @optimizeSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Careerly suggestion'**
+  String get optimizeSuggested;
+
+  /// No description provided for @optimizeYourVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Your version'**
+  String get optimizeYourVersion;
+
+  /// No description provided for @optimizeAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get optimizeAccept;
+
+  /// No description provided for @optimizeEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get optimizeEdit;
+
+  /// No description provided for @optimizeSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get optimizeSkip;
+
+  /// No description provided for @optimizeUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get optimizeUndo;
+
+  /// No description provided for @optimizeSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get optimizeSave;
+
+  /// No description provided for @optimizeEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use only facts that are true.'**
+  String get optimizeEditHint;
+
+  /// No description provided for @optimizeStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get optimizeStatusAccepted;
+
+  /// No description provided for @optimizeStatusEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get optimizeStatusEdited;
+
+  /// No description provided for @optimizeStatusSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get optimizeStatusSkipped;
+
+  /// No description provided for @optimizeRewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite with AI'**
+  String get optimizeRewrite;
+
+  /// No description provided for @optimizeModeImpact.
+  ///
+  /// In en, this message translates to:
+  /// **'Stronger impact'**
+  String get optimizeModeImpact;
+
+  /// No description provided for @optimizeModeConcise.
+  ///
+  /// In en, this message translates to:
+  /// **'More concise'**
+  String get optimizeModeConcise;
+
+  /// No description provided for @optimizeModeProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'More professional'**
+  String get optimizeModeProfessional;
+
+  /// No description provided for @optimizeModeJobTargeted.
+  ///
+  /// In en, this message translates to:
+  /// **'Job targeted'**
+  String get optimizeModeJobTargeted;
+
+  /// No description provided for @optimizeModeGrammar.
+  ///
+  /// In en, this message translates to:
+  /// **'Grammar only'**
+  String get optimizeModeGrammar;
+
+  /// No description provided for @optimizeApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply {count} changes and re-score'**
+  String optimizeApply(int count);
+
+  /// No description provided for @optimizeAiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'AI rewrites are temporarily unavailable. Your analysis and rule-based suggestions still work.'**
+  String get optimizeAiUnavailable;
+
+  /// No description provided for @optimizeAiKeptOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI rewrite added details that aren\'t in your CV, so Careerly kept your line.'**
+  String get optimizeAiKeptOriginal;
+
+  /// No description provided for @optimizeAiFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The rewrite didn\'t complete. Try again.'**
+  String get optimizeAiFailed;
+
+  /// No description provided for @optimizeRescoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t re-score the edited CV. Your previous analysis is unchanged.'**
+  String get optimizeRescoreFailed;
+
+  /// No description provided for @optimizeResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-checked by Careerly'**
+  String get optimizeResultTitle;
+
+  /// No description provided for @optimizeResultUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Scores didn\'t move. Your edits are saved, but they didn\'t change what the checks measure.'**
+  String get optimizeResultUnchanged;
+
+  /// No description provided for @optimizeVersions.
+  ///
+  /// In en, this message translates to:
+  /// **'CV versions'**
+  String get optimizeVersions;
+
+  /// No description provided for @optimizeVersionOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get optimizeVersionOriginal;
+
+  /// No description provided for @optimizeVersionOptimized.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized'**
+  String get optimizeVersionOptimized;
+
+  /// No description provided for @optimizeRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get optimizeRestore;
+
+  /// No description provided for @optimizeJobMatchRerun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the job match again to see your updated match.'**
+  String get optimizeJobMatchRerun;
+
+  /// No description provided for @optimizeOpenInBuilder.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Builder'**
+  String get optimizeOpenInBuilder;
+
+  /// No description provided for @optimizeBuilderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Builder exports a searchable PDF in a Careerly template. Your original file\'s layout isn\'t copied.'**
+  String get optimizeBuilderNote;
+
+  /// No description provided for @appsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Applications'**
+  String get appsTitle;
+
+  /// No description provided for @appsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep track of where you applied and which CV you sent.'**
+  String get appsIntro;
+
+  /// No description provided for @appsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No applications yet. Add one from a job match or start here.'**
+  String get appsEmpty;
+
+  /// No description provided for @appsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add application'**
+  String get appsAdd;
+
+  /// No description provided for @appsAddFromMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to applications'**
+  String get appsAddFromMatch;
+
+  /// No description provided for @appsAlreadyTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your applications'**
+  String get appsAlreadyTracked;
+
+  /// No description provided for @appsAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to applications'**
+  String get appsAdded;
+
+  /// No description provided for @appsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get appsAll;
+
+  /// No description provided for @appsStatusSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get appsStatusSaved;
+
+  /// No description provided for @appsStatusPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get appsStatusPreparing;
+
+  /// No description provided for @appsStatusApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied'**
+  String get appsStatusApplied;
+
+  /// No description provided for @appsStatusInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get appsStatusInterview;
+
+  /// No description provided for @appsStatusOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer'**
+  String get appsStatusOffer;
+
+  /// No description provided for @appsStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get appsStatusRejected;
+
+  /// No description provided for @appsFieldRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role title'**
+  String get appsFieldRole;
+
+  /// No description provided for @appsFieldCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get appsFieldCompany;
+
+  /// No description provided for @appsFieldStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get appsFieldStatus;
+
+  /// No description provided for @appsFieldCv.
+  ///
+  /// In en, this message translates to:
+  /// **'CV version sent'**
+  String get appsFieldCv;
+
+  /// No description provided for @appsFieldCvCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current CV'**
+  String get appsFieldCvCurrent;
+
+  /// No description provided for @appsFieldNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get appsFieldNotes;
+
+  /// No description provided for @appsFieldNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next action'**
+  String get appsFieldNext;
+
+  /// No description provided for @appsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get appsSave;
+
+  /// No description provided for @appsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete application'**
+  String get appsDelete;
+
+  /// No description provided for @appsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}% match'**
+  String appsMatch(int score);
+
+  /// No description provided for @appsAppliedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied {date}'**
+  String appsAppliedOn(String date);
+
+  /// No description provided for @appsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'View applications'**
+  String get appsOpen;
+
+  /// No description provided for @homeOverviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · Career overview'**
+  String homeOverviewLabel(String day);
+
+  /// No description provided for @homeImproveCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve my CV · {count} fixes'**
+  String homeImproveCta(int count);
+
+  /// No description provided for @homeImproveCtaNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve my CV'**
+  String get homeImproveCtaNone;
+
+  /// No description provided for @homeJobMatchAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a job'**
+  String get homeJobMatchAdd;
+
+  /// No description provided for @homeStepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next steps'**
+  String get homeStepsTitle;
+
+  /// No description provided for @homeStepAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze your CV'**
+  String get homeStepAnalyze;
+
+  /// No description provided for @homeStepAnalyzeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a PDF or DOCX to get your scores.'**
+  String get homeStepAnalyzeHint;
+
+  /// No description provided for @homeStepAnalyzeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'CV quality {score}/100'**
+  String homeStepAnalyzeDone(int score);
+
+  /// No description provided for @homeStepImprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix weak lines'**
+  String get homeStepImprove;
+
+  /// No description provided for @homeStepImproveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Available after your first analysis.'**
+  String get homeStepImproveHint;
+
+  /// No description provided for @homeStepImprovePending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} line fixes waiting for your review'**
+  String homeStepImprovePending(int count);
+
+  /// No description provided for @homeStepImproveDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized version saved'**
+  String get homeStepImproveDone;
+
+  /// No description provided for @homeStepImproveNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No line fixes needed right now'**
+  String get homeStepImproveNone;
+
+  /// No description provided for @homeStepMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Match a job posting'**
+  String get homeStepMatch;
+
+  /// No description provided for @homeStepMatchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a job description to see your gaps.'**
+  String get homeStepMatchHint;
+
+  /// No description provided for @homeStepMatchDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}% match · {title}'**
+  String homeStepMatchDone(int score, String title);
+
+  /// No description provided for @homeStepTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your applications'**
+  String get homeStepTrack;
+
+  /// No description provided for @homeStepTrackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep status, CV version and next step in one place.'**
+  String get homeStepTrackHint;
+
+  /// No description provided for @homeStepTrackDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} applications tracked'**
+  String homeStepTrackDone(int count);
+
+  /// No description provided for @homeAppsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get homeAppsActive;
+
+  /// No description provided for @homeNoMatchesHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next application starts here.'**
+  String get homeNoMatchesHeadline;
+
+  /// No description provided for @homeToolsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get homeToolsTitle;
+
+  /// No description provided for @labelNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches yet'**
+  String get labelNoMatches;
+
+  /// No description provided for @labelNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No match'**
+  String get labelNoMatch;
+
+  /// No description provided for @labelNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get labelNoResults;
+
+  /// No description provided for @labelNoDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents'**
+  String get labelNoDocuments;
+
+  /// No description provided for @labelSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get labelSections;
+
+  /// No description provided for @labelEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence'**
+  String get labelEvidence;
+
+  /// No description provided for @labelWhatsWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s working'**
+  String get labelWhatsWorking;
+
+  /// No description provided for @labelWhyStronger.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it\'s stronger'**
+  String get labelWhyStronger;
+
+  /// No description provided for @labelTopPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'01 — Top priority'**
+  String get labelTopPriority;
+
+  /// No description provided for @labelBiggestGap.
+  ///
+  /// In en, this message translates to:
+  /// **'01 — Biggest gap'**
+  String get labelBiggestGap;
+
+  /// No description provided for @improveThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve this →'**
+  String get improveThis;
+
+  /// No description provided for @jobsHeaderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Job match'**
+  String get jobsHeaderLabel;
+
+  /// No description provided for @jobsHeaderHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'See what the\nrole is asking for.'**
+  String get jobsHeaderHeadline;
+
+  /// No description provided for @analyzeHeaderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CV analysis'**
+  String get analyzeHeaderLabel;
+
+  /// No description provided for @analyzeHeaderHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s see what\nyour CV says.'**
+  String get analyzeHeaderHeadline;
+
+  /// No description provided for @builderHeaderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'My CVs'**
+  String get builderHeaderLabel;
+
+  /// No description provided for @builderHeaderHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Design your next CV.'**
+  String get builderHeaderHeadline;
+
+  /// No description provided for @profileHeaderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileHeaderLabel;
+
+  /// No description provided for @alignmentStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong alignment'**
+  String get alignmentStrong;
+
+  /// No description provided for @alignmentGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good alignment'**
+  String get alignmentGood;
+
+  /// No description provided for @alignmentPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial alignment'**
+  String get alignmentPartial;
+
+  /// No description provided for @alignmentWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak alignment'**
+  String get alignmentWeak;
+
+  /// No description provided for @onboardingKicker1.
+  ///
+  /// In en, this message translates to:
+  /// **'Know'**
+  String get onboardingKicker1;
+
+  /// No description provided for @onboardingHeadline1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your CV,\ndecoded.'**
+  String get onboardingHeadline1;
+
+  /// No description provided for @onboardingKicker2.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get onboardingKicker2;
+
+  /// No description provided for @onboardingHeadline2.
+  ///
+  /// In en, this message translates to:
+  /// **'See what the\nrole is asking for.'**
+  String get onboardingHeadline2;
+
+  /// No description provided for @onboardingKicker3.
+  ///
+  /// In en, this message translates to:
+  /// **'Build'**
+  String get onboardingKicker3;
+
+  /// No description provided for @onboardingHeadline3.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn insight\ninto a stronger CV.'**
+  String get onboardingHeadline3;
 }
 
 class _AppLocalizationsDelegate

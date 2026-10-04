@@ -13,7 +13,13 @@ enum ScoreCategoryId {
 
 enum FindingSeverity { critical, improve, good }
 
-enum SectionStatus { detected, missing, needsReview }
+enum SectionStatus {
+  detected,
+  missing,
+  needsReview,
+  lowConfidence,
+  userCorrected,
+}
 
 enum ParserConfidence { high, medium, low }
 
@@ -109,17 +115,20 @@ class ResumeSection extends Equatable {
   final String? note;
 
   ResumeSection copyWith({
+    String? key,
+    String? title,
     SectionStatus? status,
     String? preview,
     String? note,
+    bool clearNote = false,
   }) {
     return ResumeSection(
       id: id,
-      key: key,
-      title: title,
+      key: key ?? this.key,
+      title: title ?? this.title,
       status: status ?? this.status,
       preview: preview ?? this.preview,
-      note: note ?? this.note,
+      note: clearNote ? null : (note ?? this.note),
     );
   }
 
@@ -133,6 +142,7 @@ class ParsedResume extends Equatable {
     required this.sections,
     required this.confidence,
     required this.engineVersion,
+    this.evidence,
   });
 
   final String resumeId;
@@ -140,17 +150,31 @@ class ParsedResume extends Equatable {
   final ParserConfidence confidence;
   final String engineVersion;
 
-  ParsedResume copyWith({List<ResumeSection>? sections}) {
+  /// Structured text the scorer and other tabs read. Null for legacy fixtures.
+  final CvEvidence? evidence;
+
+  ParsedResume copyWith({
+    List<ResumeSection>? sections,
+    ParserConfidence? confidence,
+    CvEvidence? evidence,
+  }) {
     return ParsedResume(
       resumeId: resumeId,
       sections: sections ?? this.sections,
-      confidence: confidence,
+      confidence: confidence ?? this.confidence,
       engineVersion: engineVersion,
+      evidence: evidence ?? this.evidence,
     );
   }
 
   @override
-  List<Object?> get props => [resumeId, sections, confidence, engineVersion];
+  List<Object?> get props => [
+    resumeId,
+    sections,
+    confidence,
+    engineVersion,
+    evidence,
+  ];
 }
 
 class ScoreCategory extends Equatable {
@@ -263,6 +287,209 @@ class ResumeAnalysis extends Equatable {
     engineVersion,
     analyzedAt,
     fileName,
+  ];
+}
+
+/// Text and contact facts extracted from a real file. Never invented.
+class CvTextSection extends Equatable {
+  const CvTextSection({
+    required this.id,
+    required this.key,
+    required this.title,
+    required this.body,
+    required this.status,
+    required this.confidence,
+  });
+
+  final String id;
+  final String key;
+  final String title;
+  final String body;
+  final SectionStatus status;
+
+  /// 0–1 detection confidence for this heading.
+  final double confidence;
+
+  CvTextSection copyWith({
+    String? key,
+    String? title,
+    String? body,
+    SectionStatus? status,
+    double? confidence,
+  }) {
+    return CvTextSection(
+      id: id,
+      key: key ?? this.key,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      status: status ?? this.status,
+      confidence: confidence ?? this.confidence,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'key': key,
+    'title': title,
+    'body': body,
+    'status': status.name,
+    'confidence': confidence,
+  };
+
+  factory CvTextSection.fromJson(Map<String, dynamic> json) {
+    return CvTextSection(
+      id: json['id'] as String,
+      key: json['key'] as String,
+      title: json['title'] as String? ?? '',
+      body: json['body'] as String? ?? '',
+      status: SectionStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => SectionStatus.detected,
+      ),
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.5,
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, key, title, body, status, confidence];
+}
+
+class CvEvidence extends Equatable {
+  const CvEvidence({
+    required this.originalFileName,
+    required this.displayName,
+    required this.rawText,
+    required this.parserConfidenceScore,
+    required this.sections,
+    required this.detectedLanguage,
+    this.fullName,
+    this.email,
+    this.phone,
+    this.location,
+    this.linkedIn,
+    this.github,
+    this.portfolio,
+    this.summary,
+  });
+
+  final String originalFileName;
+  final String displayName;
+  final String rawText;
+  final int parserConfidenceScore;
+  final String detectedLanguage;
+  final String? fullName;
+  final String? email;
+  final String? phone;
+  final String? location;
+  final String? linkedIn;
+  final String? github;
+  final String? portfolio;
+  final String? summary;
+  final List<CvTextSection> sections;
+
+  String joinedBody(String key) {
+    return sections
+        .where((s) => s.key == key && s.status != SectionStatus.missing)
+        .map((s) => s.body.trim())
+        .where((b) => b.isNotEmpty)
+        .join('\n');
+  }
+
+  List<String> linesFor(String key) {
+    return joinedBody(key)
+        .split(RegExp(r'\r?\n'))
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
+  }
+
+  List<String> bulletsFor(Iterable<String> keys) {
+    final bullets = <String>[];
+    for (final key in keys) {
+      for (final line in linesFor(key)) {
+        final cleaned = line.replaceFirst(RegExp(r'^[-•*·]\s*'), '').trim();
+        if (cleaned.length < 8) continue;
+        bullets.add(cleaned);
+      }
+    }
+    return bullets;
+  }
+
+  CvEvidence copyWith({
+    List<CvTextSection>? sections,
+    int? parserConfidenceScore,
+    String? summary,
+  }) {
+    return CvEvidence(
+      originalFileName: originalFileName,
+      displayName: displayName,
+      rawText: rawText,
+      parserConfidenceScore: parserConfidenceScore ?? this.parserConfidenceScore,
+      detectedLanguage: detectedLanguage,
+      fullName: fullName,
+      email: email,
+      phone: phone,
+      location: location,
+      linkedIn: linkedIn,
+      github: github,
+      portfolio: portfolio,
+      summary: summary ?? this.summary,
+      sections: sections ?? this.sections,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'originalFileName': originalFileName,
+    'displayName': displayName,
+    'rawText': rawText,
+    'parserConfidenceScore': parserConfidenceScore,
+    'detectedLanguage': detectedLanguage,
+    'fullName': fullName,
+    'email': email,
+    'phone': phone,
+    'location': location,
+    'linkedIn': linkedIn,
+    'github': github,
+    'portfolio': portfolio,
+    'summary': summary,
+    'sections': sections.map((s) => s.toJson()).toList(),
+  };
+
+  factory CvEvidence.fromJson(Map<String, dynamic> json) {
+    return CvEvidence(
+      originalFileName: json['originalFileName'] as String? ?? '',
+      displayName: json['displayName'] as String? ?? 'CV',
+      rawText: json['rawText'] as String? ?? '',
+      parserConfidenceScore: json['parserConfidenceScore'] as int? ?? 0,
+      detectedLanguage: json['detectedLanguage'] as String? ?? 'en',
+      fullName: json['fullName'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
+      location: json['location'] as String?,
+      linkedIn: json['linkedIn'] as String?,
+      github: json['github'] as String?,
+      portfolio: json['portfolio'] as String?,
+      summary: json['summary'] as String?,
+      sections: (json['sections'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(CvTextSection.fromJson)
+          .toList(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    originalFileName,
+    displayName,
+    rawText,
+    parserConfidenceScore,
+    detectedLanguage,
+    fullName,
+    email,
+    phone,
+    location,
+    sections,
+    summary,
   ];
 }
 

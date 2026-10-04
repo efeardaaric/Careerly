@@ -53,11 +53,13 @@ class LocalResumeDocumentRepository implements ResumeDocumentRepository {
 
   @override
   Future<void> save(ResumeDocument doc) async {
+    final generation = _store.userGeneration;
     final ids = List<String>.from(_store.readStringList(_indexKey) ?? const []);
     if (!ids.contains(doc.id)) {
       ids.insert(0, doc.id);
       await _store.writeStringList(_indexKey, ids);
     }
+    if (generation != _store.userGeneration) return;
     await _store.writeString(_docKey(doc.id), jsonEncode(doc.toJson()));
   }
 
@@ -71,7 +73,11 @@ class LocalResumeDocumentRepository implements ResumeDocumentRepository {
 
   @override
   Future<ResumeDocument> duplicate(String id) async {
+    final generation = _store.userGeneration;
     final original = await getById(id);
+    if (generation != _store.userGeneration) {
+      throw StateError('Session changed');
+    }
     if (original == null) {
       throw StateError('Document not found');
     }

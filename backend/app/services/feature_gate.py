@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import uuid
+
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from app.services import usage_tracker
 from app.services.entitlement_policy import decide_access
@@ -38,15 +41,14 @@ def record_feature_usage(
     user_id: str,
     feature: FeatureId,
     request_id: str | None,
+    session: Session | None = None,
 ) -> None:
-    if not request_id or len(request_id) < 8:
-        request_id = (
-            f"auto_{user_id}_{feature.value}_{usage_tracker.get_used(user_id, feature)}"
-        )
+    request_id = str(uuid.uuid4())
     tier, _, _, _ = get_user_subscription(user_id)
     usage_tracker.record_usage(
         user_id=user_id,
         feature=feature,
         request_id=request_id,
         tier=tier,
+        session=session,
     )

@@ -57,7 +57,7 @@ class CvScoreIndicator extends StatelessWidget {
           ScoreStatus.critical => 'CRITICAL',
           ScoreStatus.unknown => null,
         },
-        dark: true,
+        dark: false,
         animate: animate,
         semanticLabel: semanticLabel,
       );

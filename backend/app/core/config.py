@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     # dev | hmac — production requires hmac + AUTH_TOKEN_SECRET
     auth_mode: str = "dev"
     auth_token_secret: str | None = None
+    database_url: str = "sqlite:///./careerly_dev.db"
+    ai_enabled: bool = False
+    store_original_cv: bool = False
+    parser_version: str = "1.0.0"
+    scoring_engine_version: str = "1.0.0"
+    firebase_project_id: str | None = None
+    firebase_credentials_path: str | None = None
 
     @property
     def is_production(self) -> bool:
@@ -45,9 +52,13 @@ class Settings(BaseSettings):
         errors: list[str] = []
         if (self.ai_provider or "").lower() == "mock":
             errors.append(
-                "AI_PROVIDER=mock is forbidden when APP_ENV=production "
-                "(scoring must not use fixture AI). Set AI_PROVIDER=openai "
-                "and OPENAI_API_KEY (EXTERNAL ACTION)."
+                "AI_PROVIDER=mock is forbidden in production. "
+                "Set AI_PROVIDER=openai, or leave the legacy route unused."
+            )
+        if self.ai_enabled and not (self.openai_api_key or "").strip():
+            errors.append(
+                "AI_ENABLED=true requires OPENAI_API_KEY in production. "
+                "Scores do not use the model; disable AI or set the key."
             )
         if (self.subscription_verifier or "").lower() == "mock":
             errors.append(

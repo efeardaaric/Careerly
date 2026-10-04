@@ -106,13 +106,13 @@ class _SplashMark extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.navyLift,
+                color: AppColors.brandYellow,
                 borderRadius: BorderRadius.circular(AppRadii.sheet),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
               ),
               child: const Icon(
-                Icons.work_outline_rounded,
-                color: Colors.white,
+                Icons.auto_awesome_rounded,
+                color: AppColors.primaryText,
                 size: 34,
               ),
             ),

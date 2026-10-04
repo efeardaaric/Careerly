@@ -5,6 +5,7 @@ import '../../../../app/theme/app_theme.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../domain/analysis_models.dart';
+import '../../domain/cv_display_name.dart';
 
 class SelectedCvCard extends StatelessWidget {
   const SelectedCvCard({
@@ -22,9 +23,8 @@ class SelectedCvCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final sizeLabel = file.sizeBytes >= 1024 * 1024
-        ? '${file.sizeMb.toStringAsFixed(1)} MB'
-        : '${(file.sizeBytes / 1024).toStringAsFixed(0)} KB';
+    final sizeLabel = CvDisplayName.sizeLabel(file.sizeBytes);
+    final title = CvDisplayName.normalize(file.name);
 
     return AppCard(
       child: Column(
@@ -52,7 +52,7 @@ class SelectedCvCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      file.name,
+                      title,
                       style: theme.textTheme.titleMedium,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

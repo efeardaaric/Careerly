@@ -7,6 +7,7 @@ import '../../../app/router/app_router.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/app_states.dart';
 import '../../billing/domain/billing_models.dart';
 import '../../billing/presentation/billing_gate.dart';
 import '../application/analysis_controller.dart';
@@ -15,19 +16,49 @@ import '../domain/analysis_models.dart';
 class SectionsReviewScreen extends ConsumerWidget {
   const SectionsReviewScreen({super.key});
 
+  static const _sectionKeys = [
+    'contact',
+    'summary',
+    'experience',
+    'education',
+    'projects',
+    'skills',
+    'certifications',
+    'languages',
+  ];
+
+  String _sectionTitle(AppLocalizations l10n, String key) {
+    final tr = l10n.localeName.startsWith('tr');
+    return switch (key) {
+      'contact' => tr ? 'İletişim' : 'Contact',
+      'summary' => tr ? 'Özet' : 'Summary',
+      'experience' => tr ? 'Deneyim' : 'Experience',
+      'education' => tr ? 'Eğitim' : 'Education',
+      'projects' => tr ? 'Projeler' : 'Projects',
+      'skills' => tr ? 'Yetenekler' : 'Skills',
+      'certifications' => tr ? 'Sertifikalar' : 'Certifications',
+      'languages' => tr ? 'Diller' : 'Languages',
+      _ => key,
+    };
+  }
+
   String _statusLabel(AppLocalizations l10n, SectionStatus status) {
     return switch (status) {
       SectionStatus.detected => l10n.sectionStatusDetected,
       SectionStatus.missing => l10n.sectionStatusMissing,
       SectionStatus.needsReview => l10n.sectionStatusNeedsReview,
+      SectionStatus.lowConfidence => l10n.sectionStatusLowConfidence,
+      SectionStatus.userCorrected => l10n.sectionStatusUserCorrected,
     };
   }
 
   Color _statusColor(SectionStatus status) {
     return switch (status) {
       SectionStatus.detected => AppColors.success,
+      SectionStatus.userCorrected => AppColors.success,
       SectionStatus.missing => AppColors.secondaryText,
       SectionStatus.needsReview => AppColors.warning,
+      SectionStatus.lowConfidence => AppColors.warning,
     };
   }
 
@@ -123,30 +154,13 @@ class SectionsReviewScreen extends ConsumerWidget {
                                       style: theme.textTheme.titleMedium,
                                     ),
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.sm,
-                                      vertical: AppSpacing.xxs,
+                                  AppStatusBadge(
+                                    label: _statusLabel(
+                                      l10n,
+                                      parsed.sections[i].status,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: _statusColor(
-                                        parsed.sections[i].status,
-                                      ).withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(
-                                        AppRadii.pill,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      _statusLabel(
-                                        l10n,
-                                        parsed.sections[i].status,
-                                      ),
-                                      style: theme.textTheme.labelMedium
-                                          ?.copyWith(
-                                            color: _statusColor(
-                                              parsed.sections[i].status,
-                                            ),
-                                          ),
+                                    color: _statusColor(
+                                      parsed.sections[i].status,
                                     ),
                                   ),
                                 ],
@@ -165,8 +179,8 @@ class SectionsReviewScreen extends ConsumerWidget {
                                   style: theme.textTheme.bodySmall,
                                 ),
                               ],
-                              if (parsed.sections[i].status ==
-                                  SectionStatus.needsReview) ...[
+                              if (parsed.sections[i].status !=
+                                  SectionStatus.missing) ...[
                                 const SizedBox(height: AppSpacing.sm),
                                 Wrap(
                                   spacing: AppSpacing.sm,
@@ -180,7 +194,7 @@ class SectionsReviewScreen extends ConsumerWidget {
                                             )
                                             .updateSectionStatus(
                                               parsed.sections[i].id,
-                                              SectionStatus.detected,
+                                              SectionStatus.userCorrected,
                                             );
                                       },
                                       child: Text(l10n.sectionMarkDetected),
@@ -198,6 +212,31 @@ class SectionsReviewScreen extends ConsumerWidget {
                                             );
                                       },
                                       child: Text(l10n.sectionMarkMissing),
+                                    ),
+                                    PopupMenuButton<String>(
+                                      tooltip: l10n.sectionChangeType,
+                                      onSelected: (key) {
+                                        ref
+                                            .read(
+                                              analysisControllerProvider
+                                                  .notifier,
+                                            )
+                                            .reclassifySection(
+                                              parsed.sections[i].id,
+                                              key,
+                                              _sectionTitle(l10n, key),
+                                            );
+                                      },
+                                      itemBuilder: (context) => [
+                                        for (final key in _sectionKeys)
+                                          PopupMenuItem(
+                                            value: key,
+                                            child: Text(
+                                              _sectionTitle(l10n, key),
+                                            ),
+                                          ),
+                                      ],
+                                      child: Text(l10n.sectionChangeType),
                                     ),
                                   ],
                                 ),
@@ -225,9 +264,14 @@ class SectionsReviewScreen extends ConsumerWidget {
                 label: l10n.analyzeContinueToScore,
                 isLoading: state.isBusy,
                 onPressed: () async {
-                  await ref
+                  final ok = await ref
                       .read(analysisControllerProvider.notifier)
                       .confirmReviewAndScore();
+                  if (!ok || !context.mounted) return;
+                  if (ref.read(analysisControllerProvider).phase !=
+                      AnalysisPhase.completed) {
+                    return;
+                  }
                   await consumePendingUsage(ref, FeatureId.cvAnalysis);
                   if (context.mounted) {
                     context.go(AppRoutes.analyzeResults);

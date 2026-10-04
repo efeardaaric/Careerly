@@ -46,7 +46,7 @@ These items **cannot** be completed honestly inside this repository without real
 
 1. Create products `careerly_pro_monthly` / `careerly_pro_yearly` in stores.
 2. Configure server receipt validation (App Store Server API / Google Play Developer API).
-3. Persist entitlements durably (DB) — current mock is in-memory.
+3. Use the durable subscription tables already implemented; connect store renewal/refund notifications to update them.
 4. Set verifier credentials via env/secret manager.
 
 **Blocks:** Paid Pro in production
@@ -82,10 +82,10 @@ These items **cannot** be completed honestly inside this repository without real
 2. Set `OPENAI_API_KEY` in secret manager.
 3. Confirm anti-fabrication prompts + scoring engine still own final scores.
 
-## 8. PDF Turkish fonts offline (optional hardening)
+## 8. PDF Turkish fonts offline (implemented)
 
-**Why:** Noto download may fail offline → Helvetica lacks TR glyphs.  
-**Steps:** Bundle licensed fonts under `assets/fonts/` and load in `CvFontBundle`.
+Noto Sans Regular/Bold and their OFL license are bundled under `assets/fonts/`.
+`CvFontBundle` loads assets without a network request. Regression tests export all four templates with network access disabled.
 
 ## Rotation
 

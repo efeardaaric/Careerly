@@ -7,6 +7,21 @@ class LocalStore {
   LocalStore(this._prefs);
 
   final SharedPreferences _prefs;
+  final Set<void Function()> _userDataResetListeners = {};
+  int userGeneration = 0;
+
+  void addUserDataResetListener(void Function() listener) =>
+      _userDataResetListeners.add(listener);
+
+  void removeUserDataResetListener(void Function() listener) =>
+      _userDataResetListeners.remove(listener);
+
+  void _resetUserState() {
+    userGeneration++;
+    for (final listener in _userDataResetListeners.toList()) {
+      listener();
+    }
+  }
 
   static const _keyLocale = 'locale_code';
   static const _keyOnboardingDone = 'onboarding_completed';
@@ -18,6 +33,7 @@ class LocalStore {
   static const _keyGoal = 'personalization_goal';
   static const _keyFields = 'personalization_fields';
   static const _keyCvLanguage = 'personalization_cv_language';
+  static const _keyFirstName = 'profile_first_name';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -87,6 +103,16 @@ class LocalStore {
   Future<void> setFields(List<String> values) =>
       _prefs.setStringList(_keyFields, values);
 
+  String? get firstName => _prefs.getString(_keyFirstName);
+
+  Future<void> setFirstName(String? value) async {
+    if (value == null || value.trim().isEmpty) {
+      await _prefs.remove(_keyFirstName);
+    } else {
+      await _prefs.setString(_keyFirstName, value.trim());
+    }
+  }
+
   String? get cvLanguage => _prefs.getString(_keyCvLanguage);
 
   Future<void> setCvLanguage(String? value) async {
@@ -99,6 +125,7 @@ class LocalStore {
 
   /// Clears demo progress flags (keeps nothing). Used from Profile reset.
   Future<void> resetDemoProgress() async {
+    _resetUserState();
     await _prefs.remove(_keyLocale);
     await _prefs.remove(_keyOnboardingDone);
     await _prefs.remove(_keyAuthMock);
@@ -109,7 +136,11 @@ class LocalStore {
     await _prefs.remove(_keyGoal);
     await _prefs.remove(_keyFields);
     await _prefs.remove(_keyCvLanguage);
+    await _prefs.remove(_keyFirstName);
     await _prefs.remove('last_resume_analysis_json');
+    await _prefs.remove('active_cv_record_json');
+    await _prefs.remove('cv_versions_json');
+    await _prefs.remove('job_applications_json');
     await _prefs.remove('saved_job_matches_json');
     await _prefs.remove('billing_usage_json');
     await _prefs.remove('billing_dev_override');
@@ -123,9 +154,50 @@ class LocalStore {
     }
   }
 
+  /// Clears data owned by the signed-in user while preserving app setup.
+  ///
+  /// Locale and onboarding completion intentionally remain so a second user on
+  /// the same device is not forced through the app introduction again.
+  Future<void> clearUserData() async {
+    _resetUserState();
+    const userKeys = <String>[
+      _keyAuthMock,
+      _keyAuthEmail,
+      _keyAuthDisplayName,
+      _keyPersonalizationDone,
+      _keyCareerStage,
+      _keyGoal,
+      _keyFields,
+      _keyCvLanguage,
+      _keyFirstName,
+      'auth_access_token',
+      'last_resume_analysis_json',
+      'active_cv_record_json',
+      'cv_versions_json',
+      'job_applications_json',
+      'saved_job_matches_json',
+      'billing_usage_json',
+      'billing_dev_override',
+      'billing_entitlement_cache_json',
+    ];
+
+    for (final key in userKeys) {
+      await _prefs.remove(key);
+    }
+
+    // Builder documents use one index plus one key per document.
+    final builderKeys = _prefs.getKeys().where(
+      (key) => key == 'builder_resume_ids' || key.startsWith('builder_resume_'),
+    );
+    for (final key in builderKeys.toList()) {
+      await _prefs.remove(key);
+    }
+  }
+
   /// Account deletion (local): wipe all Careerly SharedPreferences keys.
   /// Server-side deletion requires EXTERNAL ACTION when accounts are hosted.
   Future<void> deleteAllLocalUserData() async {
+    _resetUserState();
     final keys = _prefs.getKeys().toList();
     for (final key in keys) {
       await _prefs.remove(key);

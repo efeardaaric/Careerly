@@ -9,6 +9,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../core/widgets/careerly_identity.dart';
 import '../../analyze/presentation/widgets/finding_widgets.dart';
+import '../../applications/application/applications_controller.dart';
 import '../application/job_match_controller.dart';
 import '../domain/job_match_models.dart';
 
@@ -44,11 +45,11 @@ class JobMatchResultScreen extends ConsumerWidget {
     };
   }
 
-  String _alignmentStatus(int score) {
-    if (score >= 80) return 'STRONG ALIGNMENT';
-    if (score >= 65) return 'GOOD ALIGNMENT';
-    if (score >= 40) return 'PARTIAL ALIGNMENT';
-    return 'WEAK ALIGNMENT';
+  String _alignmentStatus(AppLocalizations l10n, int score) {
+    if (score >= 80) return l10n.alignmentStrong.toUpperCase();
+    if (score >= 65) return l10n.alignmentGood.toUpperCase();
+    if (score >= 40) return l10n.alignmentPartial.toUpperCase();
+    return l10n.alignmentWeak.toUpperCase();
   }
 
   @override
@@ -62,7 +63,7 @@ class JobMatchResultScreen extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.jobsResultsTitle)),
         body: CareerlyEmptyState(
-          label: 'NO MATCH',
+          label: l10n.labelNoMatch,
           headline: l10n.emptyGenericTitle,
           body: l10n.jobsSavedEmpty,
           actionLabel: l10n.jobsNewMatch,
@@ -126,7 +127,7 @@ class JobMatchResultScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CareerlySectionLabel('JOB MATCH', light: true),
+                CareerlySectionLabel(l10n.jobsHeaderLabel, light: true),
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -161,7 +162,7 @@ class JobMatchResultScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(AppRadii.chip),
                       ),
                       child: Text(
-                        _alignmentStatus(match.overallMatchScore),
+                        _alignmentStatus(l10n, match.overallMatchScore),
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: Colors.white,
                           letterSpacing: 0.6,
@@ -217,7 +218,7 @@ class JobMatchResultScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Evidence distribution — not a hiring probability
-                CareerlySectionLabel('EVIDENCE'),
+                CareerlySectionLabel(l10n.labelEvidence),
                 const SizedBox(height: AppSpacing.md),
                 _EvidenceBar(
                   matched: matched / total,
@@ -253,7 +254,7 @@ class JobMatchResultScreen extends ConsumerWidget {
                             ),
                             const SizedBox(width: AppSpacing.xs),
                             CareerlySectionLabel(
-                              '01 — BIGGEST GAP',
+                              l10n.labelBiggestGap,
                               color: AppColors.coral,
                             ),
                           ],
@@ -598,6 +599,35 @@ class JobMatchResultScreen extends ConsumerWidget {
                     ),
                 ],
                 const SizedBox(height: AppSpacing.xl),
+                AppButton(
+                  label:
+                      ref
+                              .watch(applicationsControllerProvider)
+                              .any((a) => a.jobMatchId == match.id)
+                          ? l10n.appsAlreadyTracked
+                          : l10n.appsAddFromMatch,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () async {
+                    final apps = ref.read(
+                      applicationsControllerProvider.notifier,
+                    );
+                    if (apps.forMatch(match.id) == null) {
+                      await apps.create(
+                        jobTitle: match.jobTitle,
+                        company: match.company,
+                        jobUrl: match.jobUrl,
+                        jobMatchId: match.id,
+                        matchScore: match.overallMatchScore,
+                      );
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.appsAdded)),
+                      );
+                    }
+                    if (context.mounted) context.push(AppRoutes.applications);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.sm),
                 AppButton(
                   label: l10n.jobsSaveMatch,
                   onPressed: () async {

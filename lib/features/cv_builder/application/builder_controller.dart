@@ -6,7 +6,10 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/storage/local_store.dart';
 import '../../analyze/application/analysis_controller.dart';
+import '../../analyze/domain/analysis_models.dart';
+import '../../analyze/domain/cv_display_name.dart';
 import '../data/local_resume_document_repository.dart';
 import '../domain/resume_document.dart';
 
@@ -63,12 +66,11 @@ class BuilderUiState extends Equatable {
 class BuilderController extends StateNotifier<BuilderUiState> {
   BuilderController({
     required ResumeDocumentRepository repository,
-    required BuilderAiRepository ai,
+    required this._ai,
     required this.readHasAnalysis,
     required this.readAnalysisMeta,
     this.autosaveDelay = const Duration(milliseconds: 700),
   }) : _repo = repository,
-       _ai = ai,
        super(const BuilderUiState()) {
     refreshList();
   }
@@ -76,12 +78,18 @@ class BuilderController extends StateNotifier<BuilderUiState> {
   final ResumeDocumentRepository _repo;
   final BuilderAiRepository _ai;
   final bool Function() readHasAnalysis;
-  final ({String analysisId, String fileName})? Function() readAnalysisMeta;
+  final ({String analysisId, String fileName, CvEvidence? evidence})? Function()
+  readAnalysisMeta;
   final Duration autosaveDelay;
   Timer? _debounce;
+  int _generation = 0;
+
+  bool _isCurrent(int generation) => mounted && generation == _generation;
 
   Future<void> refreshList() async {
+    final generation = _generation;
     final docs = await _repo.listDocuments();
+    if (!_isCurrent(generation)) return;
     state = state.copyWith(documents: docs);
   }
 
@@ -91,12 +99,15 @@ class BuilderController extends StateNotifier<BuilderUiState> {
     required CvDocumentLanguage language,
     required CvTemplateId templateId,
   }) async {
+    final generation = _generation;
     final doc = ResumeDocument.blank(
       language: language,
       templateId: templateId,
     );
     await _repo.save(doc);
+    if (!_isCurrent(generation)) return;
     await refreshList();
+    if (!_isCurrent(generation)) return;
     state = state.copyWith(active: doc, saveStatus: SaveStatus.saved);
   }
 
@@ -104,30 +115,68 @@ class BuilderController extends StateNotifier<BuilderUiState> {
     required CvDocumentLanguage language,
     required CvTemplateId templateId,
   }) async {
+    final generation = _generation;
     final meta = readAnalysisMeta();
     if (meta == null) {
       state = state.copyWith(errorMessage: 'no_analysis');
       return;
     }
-    final doc = ResumeDocument.fromAnalyzedFixture(
-      analysisId: meta.analysisId,
-      fileName: meta.fileName,
-      language: language,
-      templateId: templateId,
+    final doc = meta.evidence == null
+        ? ResumeDocument.blank(
+            language: language,
+            templateId: templateId,
+            title: CvDisplayName.normalize(meta.fileName),
+          )
+        : ResumeDocument.fromEvidence(
+            evidence: meta.evidence!,
+            analysisId: meta.analysisId,
+            language: language,
+            templateId: templateId,
+          );
+    await _repo.save(doc);
+    if (!_isCurrent(generation)) return;
+    await refreshList();
+    if (!_isCurrent(generation)) return;
+    state = state.copyWith(active: doc, saveStatus: SaveStatus.saved);
+  }
+
+  /// Opens a saved CV version as a new Builder document (Careerly template).
+  Future<void> createFromVersion({
+    required CvEvidence evidence,
+    required String versionId,
+  }) async {
+    final generation = _generation;
+    final doc = ResumeDocument.fromEvidence(
+      evidence: evidence,
+      analysisId: versionId,
+      language: evidence.detectedLanguage == 'tr'
+          ? CvDocumentLanguage.tr
+          : CvDocumentLanguage.en,
     );
     await _repo.save(doc);
+    if (!_isCurrent(generation)) return;
     await refreshList();
+    if (!_isCurrent(generation)) return;
     state = state.copyWith(active: doc, saveStatus: SaveStatus.saved);
   }
 
   Future<void> openDocument(String id) async {
+    final generation = _generation;
     final doc = await _repo.getById(id);
+    if (!_isCurrent(generation)) return;
     state = state.copyWith(active: doc, clearActive: doc == null);
   }
 
   void closeEditor() {
     _debounce?.cancel();
     state = state.copyWith(clearActive: true, saveStatus: SaveStatus.idle);
+  }
+
+  /// Clears in-memory Builder state after the signed-in user changes.
+  void clearUserData() {
+    _generation++;
+    _debounce?.cancel();
+    state = const BuilderUiState();
   }
 
   void setZoom(double zoom) {
@@ -143,42 +192,57 @@ class BuilderController extends StateNotifier<BuilderUiState> {
   }
 
   void _scheduleAutosave(ResumeDocument doc) {
+    final generation = _generation;
     _debounce?.cancel();
     _debounce = Timer(autosaveDelay, () async {
       try {
         await _repo.save(doc);
+        if (!_isCurrent(generation)) return;
         if (state.active?.id == doc.id) {
+          final documents = await _repo.listDocuments();
+          if (!_isCurrent(generation)) return;
           state = state.copyWith(
             saveStatus: SaveStatus.saved,
-            documents: await _repo.listDocuments(),
+            documents: documents,
           );
         }
       } catch (_) {
+        if (!_isCurrent(generation)) return;
         state = state.copyWith(saveStatus: SaveStatus.error);
       }
     });
   }
 
   Future<void> rename(String id, String title) async {
+    final generation = _generation;
     final doc = await _repo.getById(id);
+    if (!_isCurrent(generation)) return;
     if (doc == null) return;
     final next = doc.copyWith(title: title, updatedAt: DateTime.now().toUtc());
     await _repo.save(next);
+    if (!_isCurrent(generation)) return;
     await refreshList();
+    if (!_isCurrent(generation)) return;
     if (state.active?.id == id) {
       state = state.copyWith(active: next);
     }
   }
 
   Future<void> duplicate(String id) async {
+    final generation = _generation;
     final copy = await _repo.duplicate(id);
+    if (!_isCurrent(generation)) return;
     await refreshList();
+    if (!_isCurrent(generation)) return;
     state = state.copyWith(active: copy);
   }
 
   Future<void> delete(String id) async {
+    final generation = _generation;
     await _repo.delete(id);
+    if (!_isCurrent(generation)) return;
     await refreshList();
+    if (!_isCurrent(generation)) return;
     if (state.active?.id == id) {
       state = state.copyWith(clearActive: true);
     }
@@ -194,6 +258,7 @@ class BuilderController extends StateNotifier<BuilderUiState> {
     required String locale,
     String? sectionKey,
   }) async {
+    final generation = _generation;
     state = state.copyWith(isBusy: true, clearError: true);
     try {
       final ai = _ai;
@@ -203,9 +268,11 @@ class BuilderController extends StateNotifier<BuilderUiState> {
         locale: locale,
         sectionKey: sectionKey,
       );
+      if (!_isCurrent(generation)) return null;
       state = state.copyWith(isBusy: false);
       return suggestion;
     } catch (_) {
+      if (!_isCurrent(generation)) return null;
       state = state.copyWith(isBusy: false, errorMessage: 'rewrite_failed');
       return null;
     }
@@ -213,6 +280,7 @@ class BuilderController extends StateNotifier<BuilderUiState> {
 
   /// Translation creates a **new** document version (never overwrites in place).
   Future<ResumeDocument?> translateActive(CvDocumentLanguage target) async {
+    final generation = _generation;
     final source = state.active;
     if (source == null) return null;
     if (source.language == target) return source;
@@ -222,6 +290,7 @@ class BuilderController extends StateNotifier<BuilderUiState> {
         source: source,
         target: target,
       );
+      if (!_isCurrent(generation)) return null;
       final version = ResumeDocument(
         id: const Uuid().v4(),
         title: '${translated.title} (${target.name.toUpperCase()})',
@@ -245,7 +314,9 @@ class BuilderController extends StateNotifier<BuilderUiState> {
         parentDocumentId: source.id,
       );
       await _repo.save(version);
+      if (!_isCurrent(generation)) return null;
       await refreshList();
+      if (!_isCurrent(generation)) return null;
       state = state.copyWith(
         active: version,
         saveStatus: SaveStatus.saved,
@@ -253,6 +324,7 @@ class BuilderController extends StateNotifier<BuilderUiState> {
       );
       return version;
     } catch (_) {
+      if (!_isCurrent(generation)) return null;
       state = state.copyWith(isBusy: false, errorMessage: 'translate_failed');
       return null;
     }
@@ -261,14 +333,17 @@ class BuilderController extends StateNotifier<BuilderUiState> {
   Future<Map<String, dynamic>?> checkStructuredCv({
     required String locale,
   }) async {
+    final generation = _generation;
     final doc = state.active;
     if (doc == null) return null;
     state = state.copyWith(isBusy: true, clearError: true);
     try {
       final result = await _ai.checkDocument(document: doc, locale: locale);
+      if (!_isCurrent(generation)) return null;
       state = state.copyWith(isBusy: false);
       return result;
     } catch (_) {
+      if (!_isCurrent(generation)) return null;
       state = state.copyWith(isBusy: false, errorMessage: 'check_failed');
       return null;
     }
@@ -283,17 +358,28 @@ class BuilderController extends StateNotifier<BuilderUiState> {
 
 final builderControllerProvider =
     StateNotifierProvider<BuilderController, BuilderUiState>((ref) {
-      return BuilderController(
+      final controller = BuilderController(
         repository: ref.watch(resumeDocumentRepositoryProvider),
         ai: ref.watch(builderAiRepositoryProvider),
         readHasAnalysis: () =>
             ref.read(analysisControllerProvider).analysis != null,
         readAnalysisMeta: () {
-          final a = ref.read(analysisControllerProvider).analysis;
-          if (a == null) return null;
-          return (analysisId: a.id, fileName: a.fileName);
+          final state = ref.read(analysisControllerProvider);
+          final analysis = state.analysis;
+          if (analysis == null) return null;
+          return (
+            analysisId: analysis.id,
+            fileName: state.evidence?.displayName ?? analysis.fileName,
+            evidence: state.evidence,
+          );
         },
       );
+      final store = ref.watch(localStoreProvider);
+      store.addUserDataResetListener(controller.clearUserData);
+      ref.onDispose(
+        () => store.removeUserDataResetListener(controller.clearUserData),
+      );
+      return controller;
     });
 
 /// Builder AI rewrite client (mock locally or API).
@@ -319,7 +405,7 @@ class BuilderAiRepository {
         'mode': mode,
         'text': text,
         'locale': locale,
-        if (sectionKey != null) 'sectionKey': sectionKey,
+        'sectionKey': ?sectionKey,
       },
     );
     final data = res.data?['suggestion'] as Map<String, dynamic>?;
@@ -511,6 +597,6 @@ class BuilderAiRepository {
 final builderAiRepositoryProvider = Provider<BuilderAiRepository>((ref) {
   return BuilderAiRepository(
     apiClient: ref.watch(apiClientProvider),
-    useMock: AppConfig.instance.useMockAnalysis,
+    useMock: AppConfig.instance.analysisEngine != AnalysisEngine.api,
   );
 });

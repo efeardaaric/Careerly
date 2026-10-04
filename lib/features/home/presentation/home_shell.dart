@@ -23,86 +23,70 @@ class HomeShell extends StatelessWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.border)),
-        ),
-        child: NavigationBar(
-          selectedIndex: idx,
-          onDestinationSelected: _onTap,
-          destinations: [
-            _dest(
-              Icons.home_outlined,
-              Icons.home_rounded,
-              l10n.navHome,
-              idx == 0,
-            ),
-            _dest(
-              Icons.analytics_outlined,
-              Icons.analytics_rounded,
-              l10n.navAnalyze,
-              idx == 1,
-            ),
-            _dest(
-              Icons.work_outline_rounded,
-              Icons.work_rounded,
-              l10n.navJobs,
-              idx == 2,
-            ),
-            _dest(
-              Icons.edit_note_outlined,
-              Icons.edit_note_rounded,
-              l10n.navBuilder,
-              idx == 3,
-            ),
-            _dest(
-              Icons.person_outline_rounded,
-              Icons.person_rounded,
-              l10n.navProfile,
-              idx == 4,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  NavigationDestination _dest(
-    IconData icon,
-    IconData selected,
-    String label,
-    bool isSelected,
-  ) {
-    return NavigationDestination(
-      icon: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon),
-          const SizedBox(height: 4),
-          Container(
-            width: 16,
-            height: 2,
-            color: Colors.transparent,
-          ),
-        ],
-      ),
-      selectedIcon: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(selected),
-          const SizedBox(height: 4),
-          Container(
-            width: 16,
-            height: 2,
-            decoration: BoxDecoration(
-              color: AppColors.cobalt,
-              borderRadius: BorderRadius.circular(1),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadii.pill),
+            child: NavigationBarTheme(
+              data: NavigationBarThemeData(
+                height: 66,
+                backgroundColor: AppColors.inkNavy,
+                indicatorColor: AppColors.brandYellow.withValues(alpha: 0.14),
+                labelTextStyle: WidgetStateProperty.resolveWith(
+                  (states) => TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: states.contains(WidgetState.selected)
+                        ? AppColors.brandYellow
+                        : Colors.white70,
+                  ),
+                ),
+                iconTheme: WidgetStateProperty.resolveWith(
+                  (states) => IconThemeData(
+                    size: 22,
+                    color: states.contains(WidgetState.selected)
+                        ? AppColors.brandYellow
+                        : Colors.white70,
+                  ),
+                ),
+              ),
+              child: NavigationBar(
+                selectedIndex: idx,
+                onDestinationSelected: _onTap,
+                destinations: [
+                  NavigationDestination(
+                    icon: const Icon(Icons.home_outlined),
+                    selectedIcon: const Icon(Icons.home_rounded),
+                    label: l10n.navHome,
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.analytics_outlined),
+                    selectedIcon: const Icon(Icons.analytics_rounded),
+                    label: l10n.navAnalyze,
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.work_outline_rounded),
+                    selectedIcon: const Icon(Icons.work_rounded),
+                    label: l10n.navJobs,
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.edit_note_outlined),
+                    selectedIcon: const Icon(Icons.edit_note_rounded),
+                    label: l10n.navBuilder,
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.person_outline_rounded),
+                    selectedIcon: const Icon(Icons.person_rounded),
+                    label: l10n.navProfile,
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
-      label: label,
     );
   }
 }
@@ -128,6 +112,9 @@ class CareerlyScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final body = title == null
+        ? SafeArea(bottom: false, child: child)
+        : SafeArea(top: false, bottom: false, child: child);
     return Scaffold(
       backgroundColor: backgroundColor ?? AppColors.background,
       appBar: title == null
@@ -139,7 +126,7 @@ class CareerlyScaffold extends StatelessWidget {
               automaticallyImplyLeading: automaticallyImplyLeading,
               backgroundColor: backgroundColor ?? AppColors.background,
             ),
-      body: child,
+      body: body,
     );
   }
 }

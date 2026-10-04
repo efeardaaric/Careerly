@@ -16,6 +16,8 @@ enum CvValidationError {
   invalidExtension,
   tooLarge,
   emptyFile,
+  unreadable,
+  scanned,
   unknown,
 }
 

@@ -97,6 +97,8 @@ class AnalyzeResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str = "ok"
+    service: str = "careerly-api"
+    database: str | None = None
 
 
 class ErrorResponse(BaseModel):

@@ -20,7 +20,8 @@ class NewJobMatchScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final matchState = ref.watch(jobMatchControllerProvider);
-    final analysis = ref.watch(analysisControllerProvider).analysis;
+    final analysisState = ref.watch(analysisControllerProvider);
+    final analysis = analysisState.analysis;
 
     if (analysis == null) {
       return Scaffold(
@@ -50,10 +51,11 @@ class NewJobMatchScreen extends ConsumerWidget {
 
     final snapshot =
         matchState.selectedResume ??
-        ResumeSnapshotBuilder.fromAnalyzedCv(
+        ResumeSnapshotBuilder.fromStored(
           resumeId: analysis.resumeId,
-          fileName: analysis.fileName,
+          fileName: analysisState.evidence?.displayName ?? analysis.fileName,
           overallScore: analysis.overallScore,
+          evidence: analysisState.evidence,
         );
     final isSelected =
         matchState.selectedResume != null &&
@@ -118,7 +120,8 @@ class NewJobMatchScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                analysis.fileName,
+                                analysisState.evidence?.displayName ??
+                                    analysis.fileName,
                                 style: theme.textTheme.titleMedium,
                               ),
                               const SizedBox(height: AppSpacing.xxs),

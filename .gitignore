@@ -51,6 +51,9 @@ app.*.map.json
 # Backend
 backend/.venv/
 backend/.env
+backend/*.db
+backend/firebase-adminsdk*.json
+*firebase-adminsdk*.json
 
 android/key.properties
 *.jks

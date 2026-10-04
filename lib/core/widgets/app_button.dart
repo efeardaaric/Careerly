@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_theme.dart';
+import '../motion/careerly_motion.dart';
 
 enum AppButtonVariant { primary, secondary, ghost, destructive }
 
@@ -29,33 +30,62 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompact = size == AppButtonSize.compact;
-    final minHeight = isCompact ? 36.0 : AppSizes.minTouch;
+    final minHeight = isCompact ? AppSizes.minTouch : 52.0;
     final horizontal = isCompact ? AppSpacing.md : AppSpacing.lg;
     final vertical = isCompact ? AppSpacing.xs : AppSpacing.sm;
     final iconSize = isCompact ? 16.0 : 18.0;
 
-    final child = isLoading
-        ? SizedBox(
-            width: iconSize + 2,
-            height: iconSize + 2,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: variant == AppButtonVariant.primary
-                  ? Colors.white
-                  : AppColors.actionBlue,
-            ),
-          )
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: iconSize),
-                const SizedBox(width: AppSpacing.xs),
+    final spinner = SizedBox(
+      width: iconSize + 2,
+      height: iconSize + 2,
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        color: AppColors.primaryText,
+      ),
+    );
+    final child = AnimatedSwitcher(
+      duration: AppMotion.fast,
+      switchInCurve: AppMotion.enter,
+      switchOutCurve: AppMotion.exit,
+      child: isLoading
+          ? KeyedSubtree(
+              key: const ValueKey('loading'),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  spinner,
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Row(
+              key: ValueKey(label),
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: iconSize),
+                  const SizedBox(width: AppSpacing.xs),
+                ],
+                Flexible(
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    softWrap: true,
+                  ),
+                ),
               ],
-              Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-            ],
-          );
+            ),
+    );
 
     final button = switch (variant) {
       AppButtonVariant.primary => FilledButton(
@@ -105,7 +135,11 @@ class AppButton extends StatelessWidget {
       ),
     };
 
-    if (!expanded) return button;
-    return SizedBox(width: double.infinity, child: button);
+    final pressed = CareerlyPressable(
+      enabled: onPressed != null && !isLoading,
+      child: button,
+    );
+    if (!expanded) return pressed;
+    return SizedBox(width: double.infinity, child: pressed);
   }
 }

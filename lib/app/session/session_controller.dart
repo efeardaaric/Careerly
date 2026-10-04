@@ -14,6 +14,7 @@ class SessionState extends Equatable {
     required this.personalizationCompleted,
     this.email,
     this.displayName,
+    this.firstName,
     this.accessToken,
     this.careerStage,
     this.goal,
@@ -28,6 +29,7 @@ class SessionState extends Equatable {
   final bool personalizationCompleted;
   final String? email;
   final String? displayName;
+  final String? firstName;
   final String? accessToken;
   final CareerStage? careerStage;
   final CareerGoal? goal;
@@ -39,6 +41,25 @@ class SessionState extends Equatable {
 
   Locale? get locale => hasLocale ? Locale(localeCode!) : null;
 
+  /// A human first name. Email handles are not used as greetings.
+  String? get greetingName {
+    final explicit = firstName?.trim();
+    if (explicit != null && explicit.isNotEmpty) {
+      return explicit.split(RegExp(r'\s+')).first;
+    }
+    final display = displayName?.trim();
+    final handle = email?.split('@').first.toLowerCase();
+    if (display == null || display.isEmpty) return null;
+    if (handle != null && display.toLowerCase() == handle) return null;
+    if (!display.contains(' ')) return null;
+    final token = display.split(RegExp(r'\s+')).first;
+    if (token.length < 2) return null;
+    if (token == token.toLowerCase()) {
+      return token[0].toUpperCase() + token.substring(1);
+    }
+    return token;
+  }
+
   SessionState copyWith({
     String? localeCode,
     bool clearLocale = false,
@@ -47,6 +68,8 @@ class SessionState extends Equatable {
     bool? personalizationCompleted,
     String? email,
     String? displayName,
+    String? firstName,
+    bool clearFirstName = false,
     String? accessToken,
     bool clearAuthProfile = false,
     CareerStage? careerStage,
@@ -63,6 +86,9 @@ class SessionState extends Equatable {
           personalizationCompleted ?? this.personalizationCompleted,
       email: clearAuthProfile ? null : (email ?? this.email),
       displayName: clearAuthProfile ? null : (displayName ?? this.displayName),
+      firstName: clearAuthProfile || clearFirstName
+          ? null
+          : (firstName ?? this.firstName),
       accessToken: clearAuthProfile ? null : (accessToken ?? this.accessToken),
       careerStage: careerStage ?? this.careerStage,
       goal: goal ?? this.goal,
@@ -80,6 +106,7 @@ class SessionState extends Equatable {
     personalizationCompleted,
     email,
     displayName,
+    firstName,
     accessToken,
     careerStage,
     goal,
@@ -99,6 +126,7 @@ class SessionController extends StateNotifier<SessionState> {
           personalizationCompleted: _store.personalizationCompleted,
           email: _store.mockEmail,
           displayName: _store.mockDisplayName,
+          firstName: _store.firstName,
           accessToken: _store.readString('auth_access_token'),
           careerStage: CareerStage.fromStorage(_store.careerStage),
           goal: CareerGoal.fromStorage(_store.goal),
@@ -124,6 +152,9 @@ class SessionController extends StateNotifier<SessionState> {
     String? displayName,
     String? accessToken,
   }) async {
+    if (state.email != null && state.email != email) {
+      await signOutMock();
+    }
     final name = displayName ?? email.split('@').first;
     final token = accessToken ?? 'dev:$email';
     await _store.setMockSignedIn(
@@ -140,10 +171,24 @@ class SessionController extends StateNotifier<SessionState> {
     );
   }
 
+  Future<void> setFirstName(String name) async {
+    final trimmed = name.trim();
+    await _store.setFirstName(trimmed.isEmpty ? null : trimmed);
+    state = state.copyWith(
+      firstName: trimmed.isEmpty ? null : trimmed,
+      clearFirstName: trimmed.isEmpty,
+    );
+  }
+
   Future<void> signOutMock() async {
-    await _store.setMockSignedIn(signedIn: false);
-    await _store.remove('auth_access_token');
-    state = state.copyWith(isAuthenticated: false, clearAuthProfile: true);
+    await _store.clearUserData();
+    state = SessionState(
+      localeCode: state.localeCode,
+      onboardingCompleted: state.onboardingCompleted,
+      isAuthenticated: false,
+      personalizationCompleted: false,
+      hydrated: state.hydrated,
+    );
   }
 
   Future<void> savePersonalization({

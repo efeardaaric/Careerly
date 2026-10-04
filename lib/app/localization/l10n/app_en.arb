@@ -128,7 +128,7 @@
       "fileName": {"type": "String"}
     }
   },
-  "homeCvCardScoredBody": "Last scan {date}. Careerly readiness score based on your content — not an acceptance promise.",
+  "homeCvCardScoredBody": "Last analysis {date}. Scores reflect your CV content, not a hiring guarantee.",
   "@homeCvCardScoredBody": {
     "placeholders": {
       "date": {"type": "String"}
@@ -164,18 +164,20 @@
   "analyzeChangeFile": "Change",
   "analyzeRemoveFile": "Remove",
   "analyzeStartCta": "Analyze my CV",
-  "analyzePrivacyNote": "Your CV stays on this device during this demo. A future cloud analysis will use encrypted transit and never invent experience.",
-  "analyzeScoreDisclaimer": "This is Careerly’s structured readiness score — not an acceptance probability or a universal ATS standard.",
+  "analyzePrivacyNote": "Your CV is analyzed on this device. Careerly does not invent experience, skills, or metrics.",
+  "analyzeScoreDisclaimer": "This is Careerly's structured readiness score — not an acceptance probability or a universal ATS standard.",
   "analyzePickFailed": "Could not open the file picker. Try again.",
   "analyzeErrorExtension": "Please choose a PDF or DOCX file.",
-  "analyzeErrorTooLarge": "File is too large. Maximum size is 10 MB.",
+  "analyzeErrorTooLarge": "This file is larger than 10 MB.",
   "analyzeErrorEmpty": "That file appears empty. Choose another CV.",
   "analyzeErrorUnavailable": "File is unavailable. Please select it again.",
   "analyzeErrorCancelled": "File selection was cancelled.",
-  "analyzeErrorGeneric": "We could not analyze that file. Please try again.",
+  "analyzeErrorGeneric": "Analysis failed. Try again.",
+  "analyzeErrorUnreadable": "We couldn't read text from this CV.",
+  "analyzeErrorScanned": "Scanned CV detected. OCR support is not available in this build.",
   "analyzeProcessingTitle": "Analyzing",
   "analyzeProcessingHeadline": "Reading your CV carefully",
-  "analyzeProcessingHint": "Mock analysis uses sample insights for an early-career profile.",
+  "analyzeProcessingHint": "Scores come from Careerly's on-device rules. The same CV produces the same score.",
   "analyzeStageReading": "Reading structure",
   "analyzeStageDetecting": "Detecting sections",
   "analyzeStageAts": "Checking ATS",
@@ -193,6 +195,9 @@
   "sectionStatusDetected": "Detected",
   "sectionStatusMissing": "Missing",
   "sectionStatusNeedsReview": "Needs review",
+  "sectionStatusLowConfidence": "Low confidence",
+  "sectionStatusUserCorrected": "Corrected",
+  "sectionChangeType": "This section is…",
   "sectionMarkDetected": "Looks correct",
   "sectionMarkMissing": "Mark missing",
   "parserConfidenceHigh": "High",
@@ -239,7 +244,7 @@
   "scoreCategoryAts": "ATS compatibility",
   "scoreCategoryContent": "Content & impact",
   "scoreCategoryExperience": "Experience presentation",
-  "scoreCategorySkills": "Skills relevance",
+  "scoreCategorySkills": "Skills presentation",
   "scoreCategoryStructure": "Structure & readability",
   "scoreCategoryLanguage": "Language & grammar",
   "scoreCategoryBasics": "Basics & contact",
@@ -341,7 +346,7 @@
   "builderEmptyBody": "Create a structured CV, pick an ATS-safe template, and export a searchable PDF. Content stays the same when you switch templates.",
   "builderEmptyCta": "Create new CV",
   "builderHomeHeadline": "Professional CV Builder",
-  "builderHomeBody": "Edit semantic sections first. Templates only render — they never own your content.",
+  "builderHomeBody": "Choose a template, tell your story, and create a CV that is ready to share.",
   "builderCreateNew": "Create new",
   "builderUseExisting": "Use existing",
   "builderFromAnalyzed": "Create from analyzed CV",
@@ -522,5 +527,214 @@
   "offlineHint": "You appear to be offline. Some features need a connection later.",
 
   "semanticScoreBadge": "Score badge placeholder",
-  "close": "Close"
+  "close": "Close",
+  "homeReadyNamed": "Ready for\nyour next move,\n{name}?",
+  "@homeReadyNamed": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeReadyPlain": "Ready for\nyour next move?",
+  "profileFirstName": "First name",
+  "profileUsageAnalyses": "CV analyses",
+  "profileUsageMatches": "Job matches",
+  "profileUsageMeter": "{used} / {limit} used",
+  "@profileUsageMeter": {
+    "placeholders": {
+      "used": {"type": "int"},
+      "limit": {"type": "int"}
+    }
+  },
+  "jobsDelete": "Delete",
+  "productCvQuality": "CV Quality",
+  "productAtsReadability": "ATS Readability",
+  "productJobMatch": "Job Match",
+  "productJobMatchLocked": "Add a target job to unlock",
+  "productScoreDisclaimer": "Careerly analysis of CV structure, content, and job requirements. Not an employer's ATS score.",
+  "productBiggestOpportunities": "Biggest opportunities",
+  "productBandNeedsWork": "Needs work",
+  "productBandDeveloping": "Developing",
+  "productBandStrong": "Strong",
+  "productBandExcellent": "Excellent",
+  "productQualityImpact": "Impact and achievements",
+  "productQualityExperience": "Experience quality",
+  "productQualitySkills": "Skills and tools",
+  "productQualityStructure": "Structure and completeness",
+  "productQualityWriting": "Writing quality",
+  "productQualityConcise": "Conciseness",
+  "optimizeTitle": "Improve your CV",
+  "optimizeIntro": "Careerly checked each experience and project line. Nothing changes until you accept it, and scores update only after Careerly re-checks the edited CV.",
+  "optimizeEmpty": "No line-level fixes found. Your experience and project lines pass Careerly's checks.",
+  "optimizeNoCv": "Analyze a CV first to see suggestions.",
+  "optimizeImpactHigh": "HIGH IMPACT",
+  "optimizeImpactMedium": "MEDIUM IMPACT",
+  "optimizeImpactLow": "SMALL FIX",
+  "optimizeKindWeakOpening": "Lead with what you did",
+  "optimizeKindFirstPerson": "Drop the first person",
+  "optimizeKindTooLong": "Shorten this line",
+  "optimizeKindNoMetric": "Add a real result",
+  "optimizeKindFormatting": "Clean up wording",
+  "optimizeWhyWeakOpening": "Phrases like \"responsible for\" describe duties, not contribution. An action verb makes your part clear.",
+  "optimizeWhyFirstPerson": "CV lines usually start with the action. Removing \"I\" keeps them tight.",
+  "optimizeWhyTooLong": "Long lines are skimmed. One idea per line is easier to read.",
+  "optimizeWhyNoMetric": "A number you can verify (people, items, time saved) makes impact concrete.",
+  "optimizeWhyFormatting": "Small spacing and wording fixes. Meaning stays the same.",
+  "optimizeQuestionOutcome": "What did you deliver or change here? Write it in your own words — Careerly won't invent it.",
+  "optimizeQuestionMetric": "Do you know roughly how many people, posts, items, or hours this involved? Only add numbers you can stand behind.",
+  "optimizeOriginal": "Current",
+  "optimizeSuggested": "Careerly suggestion",
+  "optimizeYourVersion": "Your version",
+  "optimizeAccept": "Accept",
+  "optimizeEdit": "Edit",
+  "optimizeSkip": "Skip",
+  "optimizeUndo": "Undo",
+  "optimizeSave": "Save",
+  "optimizeEditHint": "Use only facts that are true.",
+  "optimizeStatusAccepted": "Accepted",
+  "optimizeStatusEdited": "Edited",
+  "optimizeStatusSkipped": "Skipped",
+  "optimizeRewrite": "Rewrite with AI",
+  "optimizeModeImpact": "Stronger impact",
+  "optimizeModeConcise": "More concise",
+  "optimizeModeProfessional": "More professional",
+  "optimizeModeJobTargeted": "Job targeted",
+  "optimizeModeGrammar": "Grammar only",
+  "optimizeApply": "Apply {count} changes and re-score",
+  "@optimizeApply": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "optimizeAiUnavailable": "AI rewrites are temporarily unavailable. Your analysis and rule-based suggestions still work.",
+  "optimizeAiKeptOriginal": "The AI rewrite added details that aren't in your CV, so Careerly kept your line.",
+  "optimizeAiFailed": "The rewrite didn't complete. Try again.",
+  "optimizeRescoreFailed": "Couldn't re-score the edited CV. Your previous analysis is unchanged.",
+  "optimizeResultTitle": "Re-checked by Careerly",
+  "optimizeResultUnchanged": "Scores didn't move. Your edits are saved, but they didn't change what the checks measure.",
+  "optimizeVersions": "CV versions",
+  "optimizeVersionOriginal": "Original",
+  "optimizeVersionOptimized": "Optimized",
+  "optimizeRestore": "Restore",
+  "optimizeJobMatchRerun": "Run the job match again to see your updated match.",
+  "optimizeOpenInBuilder": "Open in Builder",
+  "optimizeBuilderNote": "Builder exports a searchable PDF in a Careerly template. Your original file's layout isn't copied.",
+  "appsTitle": "Applications",
+  "appsIntro": "Keep track of where you applied and which CV you sent.",
+  "appsEmpty": "No applications yet. Add one from a job match or start here.",
+  "appsAdd": "Add application",
+  "appsAddFromMatch": "Add to applications",
+  "appsAlreadyTracked": "Already in your applications",
+  "appsAdded": "Added to applications",
+  "appsAll": "All",
+  "appsStatusSaved": "Saved",
+  "appsStatusPreparing": "Preparing",
+  "appsStatusApplied": "Applied",
+  "appsStatusInterview": "Interview",
+  "appsStatusOffer": "Offer",
+  "appsStatusRejected": "Rejected",
+  "appsFieldRole": "Role title",
+  "appsFieldCompany": "Company",
+  "appsFieldStatus": "Status",
+  "appsFieldCv": "CV version sent",
+  "appsFieldCvCurrent": "Current CV",
+  "appsFieldNotes": "Notes",
+  "appsFieldNext": "Next action",
+  "appsSave": "Save",
+  "appsDelete": "Delete application",
+  "appsMatch": "{score}% match",
+  "@appsMatch": {
+    "placeholders": {
+      "score": {"type": "int"}
+    }
+  },
+  "appsAppliedOn": "Applied {date}",
+  "@appsAppliedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "appsOpen": "View applications",
+  "homeOverviewLabel": "{day} · Career overview",
+  "@homeOverviewLabel": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
+  "homeImproveCta": "Improve my CV · {count} fixes",
+  "@homeImproveCta": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeImproveCtaNone": "Improve my CV",
+  "homeJobMatchAdd": "Add a job",
+  "homeStepsTitle": "Your next steps",
+  "homeStepAnalyze": "Analyze your CV",
+  "homeStepAnalyzeHint": "Upload a PDF or DOCX to get your scores.",
+  "homeStepAnalyzeDone": "CV quality {score}/100",
+  "@homeStepAnalyzeDone": {
+    "placeholders": {
+      "score": {"type": "int"}
+    }
+  },
+  "homeStepImprove": "Fix weak lines",
+  "homeStepImproveHint": "Available after your first analysis.",
+  "homeStepImprovePending": "{count} line fixes waiting for your review",
+  "@homeStepImprovePending": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeStepImproveDone": "Optimized version saved",
+  "homeStepImproveNone": "No line fixes needed right now",
+  "homeStepMatch": "Match a job posting",
+  "homeStepMatchHint": "Paste a job description to see your gaps.",
+  "homeStepMatchDone": "{score}% match · {title}",
+  "@homeStepMatchDone": {
+    "placeholders": {
+      "score": {"type": "int"},
+      "title": {"type": "String"}
+    }
+  },
+  "homeStepTrack": "Track your applications",
+  "homeStepTrackHint": "Keep status, CV version and next step in one place.",
+  "homeStepTrackDone": "{count} applications tracked",
+  "@homeStepTrackDone": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeAppsActive": "Active",
+  "homeNoMatchesHeadline": "Your next application starts here.",
+  "homeToolsTitle": "Tools",
+  "labelNoMatches": "No matches yet",
+  "labelNoMatch": "No match",
+  "labelNoResults": "No results",
+  "labelNoDocuments": "No documents",
+  "labelSections": "Sections",
+  "labelEvidence": "Evidence",
+  "labelWhatsWorking": "What's working",
+  "labelWhyStronger": "Why it's stronger",
+  "labelTopPriority": "01 — Top priority",
+  "labelBiggestGap": "01 — Biggest gap",
+  "improveThis": "Improve this →",
+  "jobsHeaderLabel": "Job match",
+  "jobsHeaderHeadline": "See what the\nrole is asking for.",
+  "analyzeHeaderLabel": "CV analysis",
+  "analyzeHeaderHeadline": "Let's see what\nyour CV says.",
+  "builderHeaderLabel": "My CVs",
+  "builderHeaderHeadline": "Design your next CV.",
+  "profileHeaderLabel": "Profile",
+  "alignmentStrong": "Strong alignment",
+  "alignmentGood": "Good alignment",
+  "alignmentPartial": "Partial alignment",
+  "alignmentWeak": "Weak alignment",
+  "onboardingKicker1": "Know",
+  "onboardingHeadline1": "Your CV,\ndecoded.",
+  "onboardingKicker2": "Match",
+  "onboardingHeadline2": "See what the\nrole is asking for.",
+  "onboardingKicker3": "Build",
+  "onboardingHeadline3": "Turn insight\ninto a stronger CV.",
+  "paywallHeadline": "Build every application\nwith more clarity.",
+  "paywallChoosePlan": "Choose a plan"
 }

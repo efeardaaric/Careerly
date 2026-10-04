@@ -53,8 +53,16 @@ class _AnalysisProcessingScreenState
       if (next.phase == AnalysisPhase.reviewRequired) {
         context.go(AppRoutes.analyzeReview);
       } else if (next.phase == AnalysisPhase.failure) {
+        final key = next.failure?.messageKey;
+        final message = switch (key) {
+          'analyzeErrorTooLarge' => l10n.analyzeErrorTooLarge,
+          'analyzeErrorUnreadable' => l10n.analyzeErrorUnreadable,
+          'analyzeErrorScanned' => l10n.analyzeErrorScanned,
+          'analyzeErrorExtension' => l10n.analyzeErrorExtension,
+          _ => l10n.analyzeErrorGeneric,
+        };
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.analyzeErrorGeneric)));
+            .showSnackBar(SnackBar(content: Text(message)));
         context.go(AppRoutes.analyze);
       } else if (next.phase == AnalysisPhase.ready &&
           prev?.phase == AnalysisPhase.processing) {

@@ -66,7 +66,7 @@ def verify_bearer_token(token: str, *, settings: Settings) -> str:
             raise _unauthorized("Token expired.")
         expected = hmac.new(
             secret.encode("utf-8"),
-            f"{user_id}.{exp}".encode("utf-8"),
+            f"{user_id}.{exp}".encode(),
             hashlib.sha256,
         ).hexdigest()
         if not hmac.compare_digest(expected, sig):
@@ -83,7 +83,7 @@ def mint_hmac_token(user_id: str, *, secret: str, ttl_seconds: int = 3600) -> st
     exp = int(time.time()) + ttl_seconds
     sig = hmac.new(
         secret.encode("utf-8"),
-        f"{user_id}.{exp}".encode("utf-8"),
+        f"{user_id}.{exp}".encode(),
         hashlib.sha256,
     ).hexdigest()
     return f"v1.{user_id}.{exp}.{sig}"

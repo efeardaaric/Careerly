@@ -133,8 +133,8 @@ abstract final class MockJobMatchFixture {
               ? 'Flutter ile kampüs uygulaması geliştirdim.'
               : 'Built a campus app with Flutter.',
           afterText: tr
-              ? 'Flutter ile 120+ öğrencinin kullandığı kampüs etkinlik uygulamasını geliştirdim.'
-              : 'Built a Flutter campus events app used by 120+ students for RSVPs.',
+              ? 'Flutter ile kampüs etkinlik uygulaması geliştirdim.'
+              : 'Built a campus events app with Flutter.',
         ),
         MatchRecommendation(
           id: 'jm_rec_learn',

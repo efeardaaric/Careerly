@@ -27,6 +27,7 @@ class ApiSubscriptionRepository implements SubscriptionRepository {
   Future<EntitlementSnapshot> fetchEntitlements({
     required String userId,
   }) async {
+    final generation = _store.userGeneration;
     try {
       final response = await _api.get<Map<String, dynamic>>(
         '/api/v1/billing/entitlements',
@@ -40,11 +41,18 @@ class ApiSubscriptionRepository implements SubscriptionRepository {
         );
       }
       final snap = EntitlementSnapshot.fromJson(data);
+      if (generation != _store.userGeneration || snap.userId != userId) {
+        throw const AppException(
+          message: 'Session changed',
+          code: 'session_changed',
+        );
+      }
       await _store.writeString(_cacheKey, jsonEncode(snap.toJson()));
       return snap;
     } on AppException {
+      if (generation != _store.userGeneration) rethrow;
       final cached = await _readCache();
-      if (cached != null) {
+      if (cached != null && cached.userId == userId) {
         return EntitlementSnapshot(
           userId: cached.userId,
           tier: cached.tier,
@@ -55,12 +63,10 @@ class ApiSubscriptionRepository implements SubscriptionRepository {
               .map(
                 (d) => AccessDecision(
                   featureId: d.featureId,
-                  allowed: d.featureId == FeatureId.readOwnCv
-                      ? true
-                      : d.allowed,
-                  reason: d.allowed
+                  allowed: d.featureId == FeatureId.readOwnCv,
+                  reason: d.featureId == FeatureId.readOwnCv
                       ? null
-                      : (d.reason ?? AccessDeniedReason.offlineStale),
+                      : AccessDeniedReason.offlineStale,
                   remaining: d.remaining,
                   limit: d.limit,
                   used: d.used,

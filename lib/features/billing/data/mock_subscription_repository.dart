@@ -17,6 +17,11 @@ class MockSubscriptionRepository implements SubscriptionRepository {
     DevSubscriptionOverride? initialOverride,
   }) : _override = initialOverride;
 
+  void clearUserData() {
+    _override = null;
+    _seenRequestIds.clear();
+  }
+
   final LocalStore _store;
   DevSubscriptionOverride? _override;
 

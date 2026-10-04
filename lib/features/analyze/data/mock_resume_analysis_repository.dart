@@ -28,7 +28,10 @@ class MockResumeAnalysisRepository implements ResumeAnalysisRepository {
   }
 
   @override
-  Future<ParsedResume> parseResume(SelectedCvFile file) async {
+  Future<ParsedResume> parseResume(
+    SelectedCvFile file, {
+    void Function(AnalysisProcessingStage stage)? onStage,
+  }) async {
     await validateCvFile(file);
     if (simulateDelay) {
       await Future<void>.delayed(parseDelay);

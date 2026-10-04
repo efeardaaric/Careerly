@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/session/session_controller.dart';
+import '../../app/theme/app_theme.dart';
 import '../../features/analyze/presentation/analyze_screen.dart';
+import '../../features/applications/presentation/applications_screen.dart';
 import '../../features/analyze/presentation/analysis_result_screen.dart';
 import '../../features/analyze/presentation/processing_screen.dart';
 import '../../features/analyze/presentation/sections_review_screen.dart';
@@ -18,6 +20,7 @@ import '../../features/jobs/presentation/jobs_screen.dart';
 import '../../features/jobs/presentation/new_job_match_screen.dart';
 import '../../features/language/presentation/language_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/optimization/presentation/optimize_screen.dart';
 import '../../features/personalization/presentation/personalization_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -40,6 +43,8 @@ abstract final class AppRoutes {
   static const jobsResults = '/jobs/results';
   static const builder = '/builder';
   static const profile = '/profile';
+  static const optimize = '/optimize';
+  static const applications = '/applications';
 }
 
 final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -93,58 +98,82 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppRoutes.splash,
-        builder: (context, state) => const SplashScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const SplashScreen()),
       ),
       GoRoute(
         path: AppRoutes.language,
-        builder: (context, state) => const LanguageScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const LanguageScreen()),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
-        builder: (context, state) => const OnboardingScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const OnboardingScreen()),
       ),
       GoRoute(
         path: AppRoutes.auth,
-        builder: (context, state) => const AuthScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const AuthScreen()),
       ),
       GoRoute(
         path: AppRoutes.personalization,
-        builder: (context, state) => const PersonalizationScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const PersonalizationScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: AppRoutes.analyzeProcessing,
-        builder: (context, state) => const AnalysisProcessingScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const AnalysisProcessingScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: AppRoutes.analyzeReview,
-        builder: (context, state) => const SectionsReviewScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const SectionsReviewScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: AppRoutes.analyzeResults,
-        builder: (context, state) => const AnalysisResultScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const AnalysisResultScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: AppRoutes.jobsNew,
-        builder: (context, state) => const NewJobMatchScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const NewJobMatchScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: AppRoutes.jobsEnter,
-        builder: (context, state) => const JobMatchEnterScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const JobMatchEnterScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: AppRoutes.jobsProcessing,
-        builder: (context, state) => const JobMatchProcessingScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const JobMatchProcessingScreen()),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: AppRoutes.jobsResults,
-        builder: (context, state) => const JobMatchResultScreen(),
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const JobMatchResultScreen()),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: AppRoutes.optimize,
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const OptimizeScreen()),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: AppRoutes.applications,
+        pageBuilder: (context, state) =>
+            _careerlyPage(state, const ApplicationsScreen()),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -196,6 +225,31 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+Page<void> _careerlyPage(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: AppMotion.normal,
+    reverseTransitionDuration: AppMotion.standard,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: AppMotion.enter);
+      if (MediaQuery.disableAnimationsOf(context)) {
+        return FadeTransition(opacity: curved, child: child);
+      }
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.035, 0),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        ),
+      );
+    },
+  );
+}
 
 class _SessionListenable extends ChangeNotifier {
   _SessionListenable(this._ref) {

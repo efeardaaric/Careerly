@@ -59,6 +59,8 @@ class AnalyzeScreen extends ConsumerWidget {
       CvValidationError.invalidExtension => l10n.analyzeErrorExtension,
       CvValidationError.tooLarge => l10n.analyzeErrorTooLarge,
       CvValidationError.emptyFile => l10n.analyzeErrorEmpty,
+      CvValidationError.unreadable => l10n.analyzeErrorUnreadable,
+      CvValidationError.scanned => l10n.analyzeErrorScanned,
       CvValidationError.unavailable => l10n.analyzeErrorUnavailable,
       CvValidationError.cancelled => l10n.analyzeErrorCancelled,
       CvValidationError.unknown || null => l10n.analyzeErrorGeneric,
@@ -86,101 +88,103 @@ class AnalyzeScreen extends ConsumerWidget {
         padding: EdgeInsets.zero,
         children: [
           CareerlyEditorialHeader(
-            label: 'CV ANALYSIS',
-            headline: "Let's see what\nyour CV says.",
+            label: l10n.analyzeHeaderLabel,
+            headline: l10n.analyzeHeaderHeadline,
             supporting: l10n.analyzeUploadBody,
             background: AppColors.iceBlue,
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.lg,
-              AppSpacing.page,
-              AppSpacing.xxl,
+            padding: EdgeInsets.only(
+              left: AppSpacing.pageInsets(context).left,
+              top: AppSpacing.lg,
+              right: AppSpacing.pageInsets(context).right,
+              bottom: AppSpacing.xxl,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-          CareerlyColorSection(
-            tone: CareerlySurfaceTone.cream,
-            onTap: state.isBusy ? null : () => _pickFile(ref, context),
-            child: Column(
-              children: [
-                const CareerlyDocumentPreview(
-                  width: 64,
-                  height: 86,
-                  accent: AppColors.cobalt,
+                CareerlyColorSection(
+                  tone: CareerlySurfaceTone.cream,
+                  onTap: state.isBusy ? null : () => _pickFile(ref, context),
+                  child: Column(
+                    children: [
+                      const CareerlyDocumentPreview(
+                        width: 64,
+                        height: 86,
+                        accent: AppColors.cobalt,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        l10n.analyzeSelectCv,
+                        style: theme.textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        l10n.analyzeSupportedFormats,
+                        style: theme.textTheme.bodySmall,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                if (state.selectedFile != null) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  SelectedCvCard(
+                    file: state.selectedFile!,
+                    onChange: () => _pickFile(ref, context),
+                    onRemove: controller.clearSelection,
+                  ),
+                ],
+                if (state.validationError != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    _validationMessage(l10n, state.validationError),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.critical,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.lg),
+                SoftUpgradeBanner(
+                  decision: ref
+                      .watch(billingControllerProvider)
+                      .decision(FeatureId.cvAnalysis),
+                  onUpgrade: () =>
+                      showPaywall(context, contextKey: 'analyze_soft'),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                Text(
-                  l10n.analyzeSelectCv,
-                  style: theme.textTheme.titleLarge,
-                  textAlign: TextAlign.center,
+                AppButton(
+                  label: l10n.analyzeStartCta,
+                  isLoading:
+                      state.isBusy && state.phase == AnalysisPhase.validating,
+                  onPressed: canAnalyze
+                      ? () async {
+                          final ok = await ensureFeatureAccess(
+                            context,
+                            ref,
+                            FeatureId.cvAnalysis,
+                            paywallContext: 'analyze_start',
+                          );
+                          if (ok && context.mounted) {
+                            context.push(AppRoutes.analyzeProcessing);
+                          }
+                        }
+                      : null,
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.md),
+                Text(l10n.analyzePrivacyNote, style: theme.textTheme.bodySmall),
+                const SizedBox(height: AppSpacing.xl),
+                CareerlySectionLabel(l10n.analyzeWhatWeCheck),
+                const SizedBox(height: AppSpacing.sm),
+                _CheckRow(text: l10n.analyzeCheckAts),
+                _CheckRow(text: l10n.analyzeCheckContent),
+                _CheckRow(text: l10n.analyzeCheckSkills, isLast: true),
+                const SizedBox(height: AppSpacing.md),
                 Text(
-                  l10n.analyzeSupportedFormats,
+                  l10n.analyzeScoreDisclaimer,
                   style: theme.textTheme.bodySmall,
-                  textAlign: TextAlign.center,
                 ),
-              ],
-            ),
-          ),
-          if (state.selectedFile != null) ...[
-            const SizedBox(height: AppSpacing.lg),
-            SelectedCvCard(
-              file: state.selectedFile!,
-              onChange: () => _pickFile(ref, context),
-              onRemove: controller.clearSelection,
-            ),
-          ],
-          if (state.validationError != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              _validationMessage(l10n, state.validationError),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.critical,
-              ),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.lg),
-          SoftUpgradeBanner(
-            decision: ref
-                .watch(billingControllerProvider)
-                .decision(FeatureId.cvAnalysis),
-            onUpgrade: () => showPaywall(context, contextKey: 'analyze_soft'),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppButton(
-            label: l10n.analyzeStartCta,
-            isLoading: state.isBusy && state.phase == AnalysisPhase.validating,
-            onPressed: canAnalyze
-                ? () async {
-                    final ok = await ensureFeatureAccess(
-                      context,
-                      ref,
-                      FeatureId.cvAnalysis,
-                      paywallContext: 'analyze_start',
-                    );
-                    if (ok && context.mounted) {
-                      context.push(AppRoutes.analyzeProcessing);
-                    }
-                  }
-                : null,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            l10n.analyzePrivacyNote,
-            style: theme.textTheme.bodySmall,
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          CareerlySectionLabel(l10n.analyzeWhatWeCheck),
-          const SizedBox(height: AppSpacing.sm),
-          _CheckRow(text: l10n.analyzeCheckAts),
-          _CheckRow(text: l10n.analyzeCheckContent),
-          _CheckRow(text: l10n.analyzeCheckSkills, isLast: true),
-          const SizedBox(height: AppSpacing.md),
-          Text(l10n.analyzeScoreDisclaimer, style: theme.textTheme.bodySmall),
               ],
             ),
           ),

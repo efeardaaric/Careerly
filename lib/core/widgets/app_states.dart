@@ -88,6 +88,50 @@ class AppErrorView extends StatelessWidget {
   }
 }
 
+/// Shared semantic badge for detected, pending and error states.
+class AppStatusBadge extends StatelessWidget {
+  const AppStatusBadge({
+    super.key,
+    required this.label,
+    this.color = AppColors.cobalt,
+    this.background,
+    this.icon,
+  });
+
+  final String label;
+  final Color color;
+  final Color? background;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: background ?? color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadii.pill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: AppSpacing.xxs),
+          ],
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium
+                ?.copyWith(color: color, letterSpacing: 0.4),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Compact editorial score — thin bar, not a circle.
 class ScoreBadge extends StatelessWidget {
   const ScoreBadge({super.key, this.score, this.label, this.size = 56});
@@ -136,10 +180,8 @@ class AppTagChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.inkNavy,
-              letterSpacing: 0.4,
-            ),
+        style: Theme.of(context).textTheme.labelMedium
+            ?.copyWith(color: AppColors.inkNavy, letterSpacing: 0.4),
       ),
     );
   }
@@ -224,13 +266,11 @@ class ChoiceChipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-      color: selected
-          ? AppColors.cobalt.withValues(alpha: 0.08)
-          : AppColors.surface,
+      color: selected ? AppColors.cream : AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.chip),
         side: BorderSide(
-          color: selected ? AppColors.cobalt : AppColors.border,
+          color: selected ? AppColors.brandYellow : AppColors.border,
           width: selected ? 1.5 : 1,
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_theme.dart';
+import '../motion/careerly_motion.dart';
 import 'app_button.dart';
 import 'careerly_identity.dart';
 
@@ -32,10 +33,7 @@ class ProcessingStageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final labels = stages ??
-        [
-          stageLabel,
-        ];
+    final labels = stages ?? [stageLabel];
 
     final steps = <CareerlyTimelineStep>[
       for (var i = 0; i < labels.length; i++)
@@ -44,8 +42,8 @@ class ProcessingStageView extends StatelessWidget {
           state: i < currentIndex
               ? CareerlyTimelineState.completed
               : i == currentIndex
-                  ? CareerlyTimelineState.current
-                  : CareerlyTimelineState.upcoming,
+              ? CareerlyTimelineState.current
+              : CareerlyTimelineState.upcoming,
         ),
     ];
 
@@ -58,31 +56,44 @@ class ProcessingStageView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CareerlySectionLabel('PROCESSING'),
-            const SizedBox(height: AppSpacing.sm),
-            Text(headline, style: theme.textTheme.displayMedium),
-            if (body != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(body!, style: theme.textTheme.bodyMedium),
-            ],
-            const SizedBox(height: AppSpacing.xl),
-            if (showTimeline)
-              CareerlyTimeline(steps: steps)
-            else ...[
-              Text(
-                stageLabel,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.cobalt,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(headline, style: theme.textTheme.displayMedium),
+                    if (body != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(body!, style: theme.textTheme.bodyMedium),
+                    ],
+                    const SizedBox(height: AppSpacing.lg),
+                    const CareerlyColorSection(
+                      tone: CareerlySurfaceTone.mint,
+                      child: Center(child: CareerlyScanDocument()),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (showTimeline)
+                      CareerlyTimeline(steps: steps)
+                    else ...[
+                      Text(
+                        stageLabel,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: AppColors.cobalt,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      CareerlyProgressRow(value: progress),
+                    ],
+                    if (hint != null) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(hint!, style: theme.textTheme.bodySmall),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              CareerlyProgressRow(value: progress),
-            ],
-            if (hint != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              Text(hint!, style: theme.textTheme.bodySmall),
-            ],
-            const Spacer(),
+            ),
+            const SizedBox(height: AppSpacing.md),
             AppButton(
               label: cancelLabel,
               variant: AppButtonVariant.secondary,

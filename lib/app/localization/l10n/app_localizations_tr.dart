@@ -314,7 +314,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String homeCvCardScoredBody(String date) {
-    return 'Son tarama $date. Careerly hazırlık skoru içeriğine dayanır — kabul garantisi değildir.';
+    return 'Son analiz $date. Skorlar CV içeriğine dayanır, işe alım garantisi değildir.';
   }
 
   @override
@@ -411,7 +411,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get analyzePrivacyNote =>
-      'Bu demoda CV\'n bu cihazda kalır. Gelecekteki bulut analizi şifreli iletim kullanır ve deneyim uydurmaz.';
+      'CV\'n bu cihazda analiz edilir. Careerly deneyim, yetenek veya metrik uydurmaz.';
 
   @override
   String get analyzeScoreDisclaimer =>
@@ -424,7 +424,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get analyzeErrorExtension => 'Lütfen PDF veya DOCX dosyası seç.';
 
   @override
-  String get analyzeErrorTooLarge => 'Dosya çok büyük. En fazla 10 MB.';
+  String get analyzeErrorTooLarge => 'Bu dosya 10 MB\'den büyük.';
 
   @override
   String get analyzeErrorEmpty => 'Dosya boş görünüyor. Başka bir CV seç.';
@@ -437,8 +437,14 @@ class AppLocalizationsTr extends AppLocalizations {
   String get analyzeErrorCancelled => 'Dosya seçimi iptal edildi.';
 
   @override
-  String get analyzeErrorGeneric =>
-      'Dosya analiz edilemedi. Lütfen tekrar dene.';
+  String get analyzeErrorGeneric => 'Analiz başarısız. Tekrar dene.';
+
+  @override
+  String get analyzeErrorUnreadable => 'Bu CV\'den metin okunamadı.';
+
+  @override
+  String get analyzeErrorScanned =>
+      'Taranmış CV algılandı. Bu sürümde OCR yok.';
 
   @override
   String get analyzeProcessingTitle => 'Analiz ediliyor';
@@ -448,7 +454,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get analyzeProcessingHint =>
-      'Mock analiz, erken kariyer profili için örnek içgörüler kullanır.';
+      'Skorlar cihazdaki Careerly kurallarından gelir. Aynı CV aynı skoru üretir.';
 
   @override
   String get analyzeStageReading => 'Yapı okunuyor';
@@ -488,6 +494,15 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sectionStatusNeedsReview => 'Gözden geçirilmeli';
+
+  @override
+  String get sectionStatusLowConfidence => 'Düşük güven';
+
+  @override
+  String get sectionStatusUserCorrected => 'Düzeltildi';
+
+  @override
+  String get sectionChangeType => 'Bu bölüm…';
 
   @override
   String get sectionMarkDetected => 'Doğru görünüyor';
@@ -577,7 +592,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scoreCategoryExperience => 'Deneyim sunumu';
 
   @override
-  String get scoreCategorySkills => 'Beceri uygunluğu';
+  String get scoreCategorySkills => 'Yetenek sunumu';
 
   @override
   String get scoreCategoryStructure => 'Yapı ve okunabilirlik';
@@ -865,7 +880,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get builderHomeBody =>
-      'Önce anlamsal bölümleri düzenleyin. Şablonlar yalnızca gösterir — içeriğe sahip olmaz.';
+      'Bir şablon seç, hikâyeni anlat ve paylaşmaya hazır bir CV oluştur.';
 
   @override
   String get builderCreateNew => 'Yeni oluştur';
@@ -1297,7 +1312,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get paywallTitle => 'Careerly Pro';
 
   @override
-  String get paywallHeadline => 'Pro ile gelişmeye devam edin';
+  String get paywallHeadline => 'Her başvuruyu\ndaha net hazırla.';
 
   @override
   String get paywallBody =>
@@ -1316,7 +1331,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get paywallValue4 => 'Premium şablonlar ve çift dilde dışa aktarma';
 
   @override
-  String get paywallChoosePlan => 'Plan seçin';
+  String get paywallChoosePlan => 'Plan seç';
 
   @override
   String get paywallMonthly => 'Aylık';
@@ -1377,4 +1392,497 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get close => 'Kapat';
+
+  @override
+  String homeReadyNamed(String name) {
+    return 'Sıradaki adımına hazır mısın,\n$name?';
+  }
+
+  @override
+  String get homeReadyPlain => 'Sıradaki adımına\nhazır mısın?';
+
+  @override
+  String get profileFirstName => 'Ad';
+
+  @override
+  String get profileUsageAnalyses => 'CV analizleri';
+
+  @override
+  String get profileUsageMatches => 'İş eşleşmeleri';
+
+  @override
+  String profileUsageMeter(int used, int limit) {
+    return '$used / $limit kullanıldı';
+  }
+
+  @override
+  String get jobsDelete => 'Sil';
+
+  @override
+  String get productCvQuality => 'CV kalitesi';
+
+  @override
+  String get productAtsReadability => 'ATS okunabilirliği';
+
+  @override
+  String get productJobMatch => 'İş uyumu';
+
+  @override
+  String get productJobMatchLocked => 'Hedef iş ekleyince açılır';
+
+  @override
+  String get productScoreDisclaimer =>
+      'CV yapısı, içerik ve iş gereksinimlerine göre Careerly analizi. Bir işverenin ATS skoru değildir.';
+
+  @override
+  String get productBiggestOpportunities => 'En büyük fırsatlar';
+
+  @override
+  String get productBandNeedsWork => 'Geliştirilmeli';
+
+  @override
+  String get productBandDeveloping => 'Gelişiyor';
+
+  @override
+  String get productBandStrong => 'Güçlü';
+
+  @override
+  String get productBandExcellent => 'Çok güçlü';
+
+  @override
+  String get productQualityImpact => 'Etki ve başarılar';
+
+  @override
+  String get productQualityExperience => 'Deneyim kalitesi';
+
+  @override
+  String get productQualitySkills => 'Yetenekler ve araçlar';
+
+  @override
+  String get productQualityStructure => 'Yapı ve bütünlük';
+
+  @override
+  String get productQualityWriting => 'Yazım kalitesi';
+
+  @override
+  String get productQualityConcise => 'Özlük';
+
+  @override
+  String get optimizeTitle => 'CV\'ni geliştir';
+
+  @override
+  String get optimizeIntro =>
+      'Careerly her deneyim ve proje satırını kontrol etti. Sen onaylamadan hiçbir şey değişmez; skorlar yalnızca Careerly düzenlenmiş CV\'yi yeniden kontrol ettiğinde güncellenir.';
+
+  @override
+  String get optimizeEmpty =>
+      'Satır düzeyinde düzeltme bulunamadı. Deneyim ve proje satırların Careerly kontrollerinden geçiyor.';
+
+  @override
+  String get optimizeNoCv => 'Öneri görmek için önce bir CV analiz et.';
+
+  @override
+  String get optimizeImpactHigh => 'YÜKSEK ETKİ';
+
+  @override
+  String get optimizeImpactMedium => 'ORTA ETKİ';
+
+  @override
+  String get optimizeImpactLow => 'KÜÇÜK DÜZELTME';
+
+  @override
+  String get optimizeKindWeakOpening => 'Ne yaptığınla başla';
+
+  @override
+  String get optimizeKindFirstPerson => 'Birinci şahsı kaldır';
+
+  @override
+  String get optimizeKindTooLong => 'Bu satırı kısalt';
+
+  @override
+  String get optimizeKindNoMetric => 'Gerçek bir sonuç ekle';
+
+  @override
+  String get optimizeKindFormatting => 'İfadeyi düzelt';
+
+  @override
+  String get optimizeWhyWeakOpening =>
+      '\"Sorumluydum\" gibi ifadeler görevi anlatır, katkını değil. Eylem fiili rolünü netleştirir.';
+
+  @override
+  String get optimizeWhyFirstPerson =>
+      'CV satırları genelde eylemle başlar. \"Ben\" ifadesini kaldırmak satırı sıkılaştırır.';
+
+  @override
+  String get optimizeWhyTooLong =>
+      'Uzun satırlar hızlı okunur ve atlanır. Her satırda tek fikir daha okunaklıdır.';
+
+  @override
+  String get optimizeWhyNoMetric =>
+      'Doğrulayabileceğin bir sayı (kişi, adet, kazanılan süre) etkiyi somutlaştırır.';
+
+  @override
+  String get optimizeWhyFormatting =>
+      'Küçük boşluk ve ifade düzeltmeleri. Anlam aynı kalır.';
+
+  @override
+  String get optimizeQuestionOutcome =>
+      'Burada ne teslim ettin veya neyi değiştirdin? Kendi cümlenle yaz — Careerly uydurmaz.';
+
+  @override
+  String get optimizeQuestionMetric =>
+      'Kabaca kaç kişi, gönderi, iş veya saat söz konusuydu biliyor musun? Yalnızca arkasında durabileceğin sayıları ekle.';
+
+  @override
+  String get optimizeOriginal => 'Mevcut';
+
+  @override
+  String get optimizeSuggested => 'Careerly önerisi';
+
+  @override
+  String get optimizeYourVersion => 'Senin versiyonun';
+
+  @override
+  String get optimizeAccept => 'Kabul et';
+
+  @override
+  String get optimizeEdit => 'Düzenle';
+
+  @override
+  String get optimizeSkip => 'Geç';
+
+  @override
+  String get optimizeUndo => 'Geri al';
+
+  @override
+  String get optimizeSave => 'Kaydet';
+
+  @override
+  String get optimizeEditHint => 'Yalnızca doğru olan bilgileri kullan.';
+
+  @override
+  String get optimizeStatusAccepted => 'Kabul edildi';
+
+  @override
+  String get optimizeStatusEdited => 'Düzenlendi';
+
+  @override
+  String get optimizeStatusSkipped => 'Geçildi';
+
+  @override
+  String get optimizeRewrite => 'AI ile yeniden yaz';
+
+  @override
+  String get optimizeModeImpact => 'Daha güçlü etki';
+
+  @override
+  String get optimizeModeConcise => 'Daha kısa';
+
+  @override
+  String get optimizeModeProfessional => 'Daha profesyonel';
+
+  @override
+  String get optimizeModeJobTargeted => 'İşe yönelik';
+
+  @override
+  String get optimizeModeGrammar => 'Yalnızca dilbilgisi';
+
+  @override
+  String optimizeApply(int count) {
+    return '$count değişikliği uygula ve yeniden puanla';
+  }
+
+  @override
+  String get optimizeAiUnavailable =>
+      'AI ile yeniden yazma şu an kullanılamıyor. Analizin ve kural tabanlı öneriler çalışmaya devam ediyor.';
+
+  @override
+  String get optimizeAiKeptOriginal =>
+      'AI önerisi CV\'nde olmayan bilgiler ekledi, bu yüzden Careerly satırını korudu.';
+
+  @override
+  String get optimizeAiFailed => 'Yeniden yazma tamamlanamadı. Tekrar dene.';
+
+  @override
+  String get optimizeRescoreFailed =>
+      'Düzenlenmiş CV yeniden puanlanamadı. Önceki analizin değişmedi.';
+
+  @override
+  String get optimizeResultTitle => 'Careerly yeniden kontrol etti';
+
+  @override
+  String get optimizeResultUnchanged =>
+      'Skorlar değişmedi. Düzenlemelerin kaydedildi ama kontrollerin ölçtüğü şeyi değiştirmedi.';
+
+  @override
+  String get optimizeVersions => 'CV versiyonları';
+
+  @override
+  String get optimizeVersionOriginal => 'Orijinal';
+
+  @override
+  String get optimizeVersionOptimized => 'Optimize edilmiş';
+
+  @override
+  String get optimizeRestore => 'Geri yükle';
+
+  @override
+  String get optimizeJobMatchRerun =>
+      'Güncel uyumu görmek için iş eşleşmesini yeniden çalıştır.';
+
+  @override
+  String get optimizeOpenInBuilder => 'Oluşturucuda aç';
+
+  @override
+  String get optimizeBuilderNote =>
+      'Oluşturucu, Careerly şablonuyla aranabilir bir PDF dışa aktarır. Orijinal dosyanın düzeni kopyalanmaz.';
+
+  @override
+  String get appsTitle => 'Başvurular';
+
+  @override
+  String get appsIntro =>
+      'Nereye başvurduğunu ve hangi CV\'yi gönderdiğini takip et.';
+
+  @override
+  String get appsEmpty =>
+      'Henüz başvuru yok. Bir iş eşleşmesinden ekle veya buradan başla.';
+
+  @override
+  String get appsAdd => 'Başvuru ekle';
+
+  @override
+  String get appsAddFromMatch => 'Başvurulara ekle';
+
+  @override
+  String get appsAlreadyTracked => 'Zaten başvurularında';
+
+  @override
+  String get appsAdded => 'Başvurulara eklendi';
+
+  @override
+  String get appsAll => 'Tümü';
+
+  @override
+  String get appsStatusSaved => 'Kaydedildi';
+
+  @override
+  String get appsStatusPreparing => 'Hazırlanıyor';
+
+  @override
+  String get appsStatusApplied => 'Başvuruldu';
+
+  @override
+  String get appsStatusInterview => 'Mülakat';
+
+  @override
+  String get appsStatusOffer => 'Teklif';
+
+  @override
+  String get appsStatusRejected => 'Olumsuz';
+
+  @override
+  String get appsFieldRole => 'Pozisyon';
+
+  @override
+  String get appsFieldCompany => 'Şirket';
+
+  @override
+  String get appsFieldStatus => 'Durum';
+
+  @override
+  String get appsFieldCv => 'Gönderilen CV versiyonu';
+
+  @override
+  String get appsFieldCvCurrent => 'Güncel CV';
+
+  @override
+  String get appsFieldNotes => 'Notlar';
+
+  @override
+  String get appsFieldNext => 'Sonraki adım';
+
+  @override
+  String get appsSave => 'Kaydet';
+
+  @override
+  String get appsDelete => 'Başvuruyu sil';
+
+  @override
+  String appsMatch(int score) {
+    return '%$score uyum';
+  }
+
+  @override
+  String appsAppliedOn(String date) {
+    return 'Başvuru: $date';
+  }
+
+  @override
+  String get appsOpen => 'Başvuruları gör';
+
+  @override
+  String homeOverviewLabel(String day) {
+    return '$day · Kariyer paneli';
+  }
+
+  @override
+  String homeImproveCta(int count) {
+    return 'CV\'mi iyileştir · $count öneri';
+  }
+
+  @override
+  String get homeImproveCtaNone => 'CV\'mi iyileştir';
+
+  @override
+  String get homeJobMatchAdd => 'İlan ekle';
+
+  @override
+  String get homeStepsTitle => 'Sıradaki adımların';
+
+  @override
+  String get homeStepAnalyze => 'CV\'ni analiz et';
+
+  @override
+  String get homeStepAnalyzeHint =>
+      'Skorlarını görmek için PDF veya DOCX yükle.';
+
+  @override
+  String homeStepAnalyzeDone(int score) {
+    return 'CV kalitesi $score/100';
+  }
+
+  @override
+  String get homeStepImprove => 'Zayıf satırları düzelt';
+
+  @override
+  String get homeStepImproveHint => 'İlk analizden sonra açılır.';
+
+  @override
+  String homeStepImprovePending(int count) {
+    return '$count satır önerisi onayını bekliyor';
+  }
+
+  @override
+  String get homeStepImproveDone => 'Optimize versiyon kaydedildi';
+
+  @override
+  String get homeStepImproveNone => 'Şu an düzeltilecek satır yok';
+
+  @override
+  String get homeStepMatch => 'Bir iş ilanıyla eşleştir';
+
+  @override
+  String get homeStepMatchHint =>
+      'Eksiklerini görmek için ilan metnini yapıştır.';
+
+  @override
+  String homeStepMatchDone(int score, String title) {
+    return '%$score uyum · $title';
+  }
+
+  @override
+  String get homeStepTrack => 'Başvurularını takip et';
+
+  @override
+  String get homeStepTrackHint =>
+      'Durum, CV versiyonu ve sonraki adım tek yerde.';
+
+  @override
+  String homeStepTrackDone(int count) {
+    return '$count başvuru takipte';
+  }
+
+  @override
+  String get homeAppsActive => 'Aktif';
+
+  @override
+  String get homeNoMatchesHeadline => 'Sıradaki başvurun burada başlar.';
+
+  @override
+  String get homeToolsTitle => 'Araçlar';
+
+  @override
+  String get labelNoMatches => 'Henüz eşleşme yok';
+
+  @override
+  String get labelNoMatch => 'Eşleşme yok';
+
+  @override
+  String get labelNoResults => 'Sonuç yok';
+
+  @override
+  String get labelNoDocuments => 'Belge yok';
+
+  @override
+  String get labelSections => 'Bölümler';
+
+  @override
+  String get labelEvidence => 'Kanıt';
+
+  @override
+  String get labelWhatsWorking => 'İyi giden yönler';
+
+  @override
+  String get labelWhyStronger => 'Neden daha güçlü';
+
+  @override
+  String get labelTopPriority => '01 — En öncelikli';
+
+  @override
+  String get labelBiggestGap => '01 — En büyük eksik';
+
+  @override
+  String get improveThis => 'Bunu iyileştir →';
+
+  @override
+  String get jobsHeaderLabel => 'İş eşleştirme';
+
+  @override
+  String get jobsHeaderHeadline => 'İlanın senden\nne istediğini gör.';
+
+  @override
+  String get analyzeHeaderLabel => 'CV analizi';
+
+  @override
+  String get analyzeHeaderHeadline => 'CV\'n ne anlatıyor,\nbirlikte bakalım.';
+
+  @override
+  String get builderHeaderLabel => 'CV\'lerim';
+
+  @override
+  String get builderHeaderHeadline => 'Yeni CV\'ni tasarla.';
+
+  @override
+  String get profileHeaderLabel => 'Profil';
+
+  @override
+  String get alignmentStrong => 'Güçlü uyum';
+
+  @override
+  String get alignmentGood => 'İyi uyum';
+
+  @override
+  String get alignmentPartial => 'Kısmi uyum';
+
+  @override
+  String get alignmentWeak => 'Zayıf uyum';
+
+  @override
+  String get onboardingKicker1 => 'Tanı';
+
+  @override
+  String get onboardingHeadline1 => 'CV\'n,\nçözümlenmiş.';
+
+  @override
+  String get onboardingKicker2 => 'Eşleştir';
+
+  @override
+  String get onboardingHeadline2 => 'İlanın senden\nne istediğini gör.';
+
+  @override
+  String get onboardingKicker3 => 'Oluştur';
+
+  @override
+  String get onboardingHeadline3 => 'İçgörüyü daha\ngüçlü bir CV\'ye çevir.';
 }

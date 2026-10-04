@@ -9,6 +9,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../core/widgets/careerly_identity.dart';
+import '../../../core/widgets/resume_template_gallery.dart';
 import '../../analyze/application/analysis_controller.dart';
 import '../../analyze/domain/analysis_models.dart';
 import '../../home/presentation/home_shell.dart';
@@ -50,8 +51,8 @@ class _BuilderHome extends ConsumerWidget {
         padding: EdgeInsets.zero,
         children: [
           CareerlyEditorialHeader(
-            label: 'MY CVS',
-            headline: 'Build the version\nthat fits the role.',
+            label: l10n.builderHeaderLabel,
+            headline: l10n.builderHeaderHeadline,
             supporting: l10n.builderHomeBody,
             background: AppColors.cream,
             trailing: const CareerlyDocumentPreview(
@@ -61,53 +62,73 @@ class _BuilderHome extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.xl,
-              AppSpacing.page,
-              AppSpacing.xxl,
+            padding: EdgeInsets.only(
+              left: AppSpacing.pageInsets(context).left,
+              top: AppSpacing.xl,
+              right: AppSpacing.pageInsets(context).right,
+              bottom: AppSpacing.xxl,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(l10n.builderTemplate, style: theme.textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.md),
+                SearchableResumeTemplateGallery(
+                  onSelected: (template) => _openSetup(
+                    context,
+                    ref,
+                    BuilderStartPoint.blank,
+                    template: template,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 AppButton(
                   label: l10n.builderCreateNew,
                   onPressed: () =>
                       _openSetup(context, ref, BuilderStartPoint.blank),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppButton(
-                        label: l10n.builderUseExisting,
-                        variant: AppButtonVariant.secondary,
-                        onPressed: state.documents.isEmpty
-                            ? null
-                            : () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l10n.builderPickExistingHint),
-                                  ),
-                                );
-                              },
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: AppButton(
-                        label: l10n.builderFromAnalyzed,
-                        variant: AppButtonVariant.secondary,
-                        onPressed: hasAnalysis
-                            ? () => _openSetup(
-                                  context,
-                                  ref,
-                                  BuilderStartPoint.fromAnalyzed,
-                                )
-                            : null,
-                      ),
-                    ),
-                  ],
+                AppButton(
+                  label: l10n.builderUseExisting,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: state.documents.isEmpty
+                      ? null
+                      : () async {
+                          final picked = await showModalBottomSheet<String>(
+                            context: context,
+                            showDragHandle: true,
+                            builder: (context) {
+                              return SafeArea(
+                                child: ListView(
+                                  shrinkWrap: true,
+                                  children: [
+                                    for (final doc in state.documents)
+                                      ListTile(
+                                        title: Text(doc.title),
+                                        onTap: () =>
+                                            Navigator.pop(context, doc.id),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                          if (picked != null) {
+                            await ctrl.openDocument(picked);
+                          }
+                        },
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppButton(
+                  label: l10n.builderFromAnalyzed,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: hasAnalysis
+                      ? () => _openSetup(
+                          context,
+                          ref,
+                          BuilderStartPoint.fromAnalyzed,
+                        )
+                      : null,
                 ),
                 if (!hasAnalysis) ...[
                   const SizedBox(height: AppSpacing.xs),
@@ -122,7 +143,7 @@ class _BuilderHome extends ConsumerWidget {
                 if (state.documents.isEmpty)
                   CareerlyEmptyState(
                     number: '00',
-                    label: 'NO DOCUMENTS',
+                    label: l10n.labelNoDocuments,
                     headline: l10n.builderEmptyTitle,
                     body: l10n.builderEmptyBody,
                     actionLabel: l10n.builderCreateNew,
@@ -251,13 +272,16 @@ class _BuilderHome extends ConsumerWidget {
   Future<void> _openSetup(
     BuildContext context,
     WidgetRef ref,
-    BuilderStartPoint start,
-  ) async {
+    BuilderStartPoint start, {
+    CvTemplateId? template,
+  }) async {
     final result = await showModalBottomSheet<_SetupResult>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (_) => _QuickSetupSheet(startPoint: start),
+      builder: (_) => SingleChildScrollView(
+        child: _QuickSetupSheet(startPoint: start, template: template),
+      ),
     );
     if (result == null) return;
     final ctrl = ref.read(builderControllerProvider.notifier);
@@ -282,8 +306,9 @@ class _SetupResult {
 }
 
 class _QuickSetupSheet extends StatefulWidget {
-  const _QuickSetupSheet({required this.startPoint});
+  const _QuickSetupSheet({required this.startPoint, this.template});
   final BuilderStartPoint startPoint;
+  final CvTemplateId? template;
 
   @override
   State<_QuickSetupSheet> createState() => _QuickSetupSheetState();
@@ -292,6 +317,12 @@ class _QuickSetupSheet extends StatefulWidget {
 class _QuickSetupSheetState extends State<_QuickSetupSheet> {
   CvDocumentLanguage _lang = CvDocumentLanguage.en;
   CvTemplateId _template = CvTemplateId.classicAts;
+
+  @override
+  void initState() {
+    super.initState();
+    _template = widget.template ?? CvTemplateId.classicAts;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -691,17 +722,17 @@ class _EditorPane extends ConsumerWidget {
   final ResumeDocument doc;
 
   String _sectionLabel(AppLocalizations l10n, String key) => switch (key) {
-        'personal' => l10n.builderSectionPersonal,
-        'summary' => l10n.builderSectionSummary,
-        'education' => l10n.builderSectionEducation,
-        'experience' => l10n.builderSectionExperience,
-        'projects' => l10n.builderSectionProjects,
-        'skills' => l10n.builderSectionSkills,
-        'languages' => l10n.builderSectionLanguages,
-        'certs' => l10n.builderSectionCerts,
-        'awards' => l10n.builderSectionAwards,
-        _ => key,
-      };
+    'personal' => l10n.builderSectionPersonal,
+    'summary' => l10n.builderSectionSummary,
+    'education' => l10n.builderSectionEducation,
+    'experience' => l10n.builderSectionExperience,
+    'projects' => l10n.builderSectionProjects,
+    'skills' => l10n.builderSectionSkills,
+    'languages' => l10n.builderSectionLanguages,
+    'certs' => l10n.builderSectionCerts,
+    'awards' => l10n.builderSectionAwards,
+    _ => key,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -718,7 +749,7 @@ class _EditorPane extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CareerlySectionLabel('SECTIONS'),
+              CareerlySectionLabel(l10n.labelSections),
               const SizedBox(height: AppSpacing.md),
               for (var i = 0; i < doc.sectionOrder.length; i++) ...[
                 Builder(
@@ -731,8 +762,8 @@ class _EditorPane extends ConsumerWidget {
                     final color = done
                         ? AppColors.mint
                         : partial
-                            ? AppColors.cobalt
-                            : AppColors.border;
+                        ? AppColors.cobalt
+                        : AppColors.border;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                       child: Row(

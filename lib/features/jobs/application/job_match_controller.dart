@@ -295,24 +295,46 @@ class JobMatchController extends StateNotifier<JobMatchUiState> {
     state = state.copyWith(savedMatches: next, phase: JobMatchPhase.list);
   }
 
+  Future<void> deleteSaved(String id) async {
+    final next = state.savedMatches.where((m) => m.id != id).toList();
+    await _persistSaved(next);
+    state = state.copyWith(savedMatches: next);
+  }
+
   Future<void> clearSavedMatches() async {
     await _store.remove(storageKey);
     state = state.copyWith(savedMatches: const []);
+  }
+
+  /// Clears in-memory match state after the signed-in user changes.
+  void clearUserData() {
+    _cancelRequested = true;
+    _runToken++;
+    state = const JobMatchUiState();
+  }
+
+  @override
+  void dispose() {
+    _cancelRequested = true;
+    _runToken++;
+    super.dispose();
   }
 }
 
 final jobMatchControllerProvider =
     StateNotifierProvider<JobMatchController, JobMatchUiState>((ref) {
-      return JobMatchController(
+      final controller = JobMatchController(
         repository: ref.watch(jobMatchRepositoryProvider),
         store: ref.watch(localStoreProvider),
         readAnalysis: () {
-          final analysis = ref.read(analysisControllerProvider).analysis;
-          if (analysis == null) return null;
-          return ResumeSnapshotBuilder.fromAnalyzedCv(
-            resumeId: analysis.resumeId,
-            fileName: analysis.fileName,
-            overallScore: analysis.overallScore,
+          final analysis = ref.read(analysisControllerProvider);
+          if (analysis.analysis == null) return null;
+          return ResumeSnapshotBuilder.fromStored(
+            resumeId: analysis.analysis!.resumeId,
+            fileName:
+                analysis.evidence?.displayName ?? analysis.analysis!.fileName,
+            overallScore: analysis.analysis!.overallScore,
+            evidence: analysis.evidence,
           );
         },
         readLocale: () {
@@ -321,4 +343,10 @@ final jobMatchControllerProvider =
         },
         readCareerStage: () => ref.read(sessionProvider).careerStage?.name,
       );
+      final store = ref.watch(localStoreProvider);
+      store.addUserDataResetListener(controller.clearUserData);
+      ref.onDispose(
+        () => store.removeUserDataResetListener(controller.clearUserData),
+      );
+      return controller;
     });

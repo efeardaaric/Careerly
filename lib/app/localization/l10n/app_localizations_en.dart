@@ -313,7 +313,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeCvCardScoredBody(String date) {
-    return 'Last scan $date. Careerly readiness score based on your content — not an acceptance promise.';
+    return 'Last analysis $date. Scores reflect your CV content, not a hiring guarantee.';
   }
 
   @override
@@ -410,11 +410,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analyzePrivacyNote =>
-      'Your CV stays on this device during this demo. A future cloud analysis will use encrypted transit and never invent experience.';
+      'Your CV is analyzed on this device. Careerly does not invent experience, skills, or metrics.';
 
   @override
   String get analyzeScoreDisclaimer =>
-      'This is Careerly’s structured readiness score — not an acceptance probability or a universal ATS standard.';
+      'This is Careerly\'s structured readiness score — not an acceptance probability or a universal ATS standard.';
 
   @override
   String get analyzePickFailed => 'Could not open the file picker. Try again.';
@@ -423,8 +423,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyzeErrorExtension => 'Please choose a PDF or DOCX file.';
 
   @override
-  String get analyzeErrorTooLarge =>
-      'File is too large. Maximum size is 10 MB.';
+  String get analyzeErrorTooLarge => 'This file is larger than 10 MB.';
 
   @override
   String get analyzeErrorEmpty => 'That file appears empty. Choose another CV.';
@@ -437,8 +436,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyzeErrorCancelled => 'File selection was cancelled.';
 
   @override
-  String get analyzeErrorGeneric =>
-      'We could not analyze that file. Please try again.';
+  String get analyzeErrorGeneric => 'Analysis failed. Try again.';
+
+  @override
+  String get analyzeErrorUnreadable => 'We couldn\'t read text from this CV.';
+
+  @override
+  String get analyzeErrorScanned =>
+      'Scanned CV detected. OCR support is not available in this build.';
 
   @override
   String get analyzeProcessingTitle => 'Analyzing';
@@ -448,7 +453,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analyzeProcessingHint =>
-      'Mock analysis uses sample insights for an early-career profile.';
+      'Scores come from Careerly\'s on-device rules. The same CV produces the same score.';
 
   @override
   String get analyzeStageReading => 'Reading structure';
@@ -488,6 +493,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sectionStatusNeedsReview => 'Needs review';
+
+  @override
+  String get sectionStatusLowConfidence => 'Low confidence';
+
+  @override
+  String get sectionStatusUserCorrected => 'Corrected';
+
+  @override
+  String get sectionChangeType => 'This section is…';
 
   @override
   String get sectionMarkDetected => 'Looks correct';
@@ -577,7 +591,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scoreCategoryExperience => 'Experience presentation';
 
   @override
-  String get scoreCategorySkills => 'Skills relevance';
+  String get scoreCategorySkills => 'Skills presentation';
 
   @override
   String get scoreCategoryStructure => 'Structure & readability';
@@ -864,7 +878,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get builderHomeBody =>
-      'Edit semantic sections first. Templates only render — they never own your content.';
+      'Choose a template, tell your story, and create a CV that is ready to share.';
 
   @override
   String get builderCreateNew => 'Create new';
@@ -1295,7 +1309,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paywallTitle => 'Careerly Pro';
 
   @override
-  String get paywallHeadline => 'Keep improving with Pro';
+  String get paywallHeadline => 'Build every application\nwith more clarity.';
 
   @override
   String get paywallBody =>
@@ -1374,4 +1388,495 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
+
+  @override
+  String homeReadyNamed(String name) {
+    return 'Ready for\nyour next move,\n$name?';
+  }
+
+  @override
+  String get homeReadyPlain => 'Ready for\nyour next move?';
+
+  @override
+  String get profileFirstName => 'First name';
+
+  @override
+  String get profileUsageAnalyses => 'CV analyses';
+
+  @override
+  String get profileUsageMatches => 'Job matches';
+
+  @override
+  String profileUsageMeter(int used, int limit) {
+    return '$used / $limit used';
+  }
+
+  @override
+  String get jobsDelete => 'Delete';
+
+  @override
+  String get productCvQuality => 'CV Quality';
+
+  @override
+  String get productAtsReadability => 'ATS Readability';
+
+  @override
+  String get productJobMatch => 'Job Match';
+
+  @override
+  String get productJobMatchLocked => 'Add a target job to unlock';
+
+  @override
+  String get productScoreDisclaimer =>
+      'Careerly analysis of CV structure, content, and job requirements. Not an employer\'s ATS score.';
+
+  @override
+  String get productBiggestOpportunities => 'Biggest opportunities';
+
+  @override
+  String get productBandNeedsWork => 'Needs work';
+
+  @override
+  String get productBandDeveloping => 'Developing';
+
+  @override
+  String get productBandStrong => 'Strong';
+
+  @override
+  String get productBandExcellent => 'Excellent';
+
+  @override
+  String get productQualityImpact => 'Impact and achievements';
+
+  @override
+  String get productQualityExperience => 'Experience quality';
+
+  @override
+  String get productQualitySkills => 'Skills and tools';
+
+  @override
+  String get productQualityStructure => 'Structure and completeness';
+
+  @override
+  String get productQualityWriting => 'Writing quality';
+
+  @override
+  String get productQualityConcise => 'Conciseness';
+
+  @override
+  String get optimizeTitle => 'Improve your CV';
+
+  @override
+  String get optimizeIntro =>
+      'Careerly checked each experience and project line. Nothing changes until you accept it, and scores update only after Careerly re-checks the edited CV.';
+
+  @override
+  String get optimizeEmpty =>
+      'No line-level fixes found. Your experience and project lines pass Careerly\'s checks.';
+
+  @override
+  String get optimizeNoCv => 'Analyze a CV first to see suggestions.';
+
+  @override
+  String get optimizeImpactHigh => 'HIGH IMPACT';
+
+  @override
+  String get optimizeImpactMedium => 'MEDIUM IMPACT';
+
+  @override
+  String get optimizeImpactLow => 'SMALL FIX';
+
+  @override
+  String get optimizeKindWeakOpening => 'Lead with what you did';
+
+  @override
+  String get optimizeKindFirstPerson => 'Drop the first person';
+
+  @override
+  String get optimizeKindTooLong => 'Shorten this line';
+
+  @override
+  String get optimizeKindNoMetric => 'Add a real result';
+
+  @override
+  String get optimizeKindFormatting => 'Clean up wording';
+
+  @override
+  String get optimizeWhyWeakOpening =>
+      'Phrases like \"responsible for\" describe duties, not contribution. An action verb makes your part clear.';
+
+  @override
+  String get optimizeWhyFirstPerson =>
+      'CV lines usually start with the action. Removing \"I\" keeps them tight.';
+
+  @override
+  String get optimizeWhyTooLong =>
+      'Long lines are skimmed. One idea per line is easier to read.';
+
+  @override
+  String get optimizeWhyNoMetric =>
+      'A number you can verify (people, items, time saved) makes impact concrete.';
+
+  @override
+  String get optimizeWhyFormatting =>
+      'Small spacing and wording fixes. Meaning stays the same.';
+
+  @override
+  String get optimizeQuestionOutcome =>
+      'What did you deliver or change here? Write it in your own words — Careerly won\'t invent it.';
+
+  @override
+  String get optimizeQuestionMetric =>
+      'Do you know roughly how many people, posts, items, or hours this involved? Only add numbers you can stand behind.';
+
+  @override
+  String get optimizeOriginal => 'Current';
+
+  @override
+  String get optimizeSuggested => 'Careerly suggestion';
+
+  @override
+  String get optimizeYourVersion => 'Your version';
+
+  @override
+  String get optimizeAccept => 'Accept';
+
+  @override
+  String get optimizeEdit => 'Edit';
+
+  @override
+  String get optimizeSkip => 'Skip';
+
+  @override
+  String get optimizeUndo => 'Undo';
+
+  @override
+  String get optimizeSave => 'Save';
+
+  @override
+  String get optimizeEditHint => 'Use only facts that are true.';
+
+  @override
+  String get optimizeStatusAccepted => 'Accepted';
+
+  @override
+  String get optimizeStatusEdited => 'Edited';
+
+  @override
+  String get optimizeStatusSkipped => 'Skipped';
+
+  @override
+  String get optimizeRewrite => 'Rewrite with AI';
+
+  @override
+  String get optimizeModeImpact => 'Stronger impact';
+
+  @override
+  String get optimizeModeConcise => 'More concise';
+
+  @override
+  String get optimizeModeProfessional => 'More professional';
+
+  @override
+  String get optimizeModeJobTargeted => 'Job targeted';
+
+  @override
+  String get optimizeModeGrammar => 'Grammar only';
+
+  @override
+  String optimizeApply(int count) {
+    return 'Apply $count changes and re-score';
+  }
+
+  @override
+  String get optimizeAiUnavailable =>
+      'AI rewrites are temporarily unavailable. Your analysis and rule-based suggestions still work.';
+
+  @override
+  String get optimizeAiKeptOriginal =>
+      'The AI rewrite added details that aren\'t in your CV, so Careerly kept your line.';
+
+  @override
+  String get optimizeAiFailed => 'The rewrite didn\'t complete. Try again.';
+
+  @override
+  String get optimizeRescoreFailed =>
+      'Couldn\'t re-score the edited CV. Your previous analysis is unchanged.';
+
+  @override
+  String get optimizeResultTitle => 'Re-checked by Careerly';
+
+  @override
+  String get optimizeResultUnchanged =>
+      'Scores didn\'t move. Your edits are saved, but they didn\'t change what the checks measure.';
+
+  @override
+  String get optimizeVersions => 'CV versions';
+
+  @override
+  String get optimizeVersionOriginal => 'Original';
+
+  @override
+  String get optimizeVersionOptimized => 'Optimized';
+
+  @override
+  String get optimizeRestore => 'Restore';
+
+  @override
+  String get optimizeJobMatchRerun =>
+      'Run the job match again to see your updated match.';
+
+  @override
+  String get optimizeOpenInBuilder => 'Open in Builder';
+
+  @override
+  String get optimizeBuilderNote =>
+      'Builder exports a searchable PDF in a Careerly template. Your original file\'s layout isn\'t copied.';
+
+  @override
+  String get appsTitle => 'Applications';
+
+  @override
+  String get appsIntro =>
+      'Keep track of where you applied and which CV you sent.';
+
+  @override
+  String get appsEmpty =>
+      'No applications yet. Add one from a job match or start here.';
+
+  @override
+  String get appsAdd => 'Add application';
+
+  @override
+  String get appsAddFromMatch => 'Add to applications';
+
+  @override
+  String get appsAlreadyTracked => 'Already in your applications';
+
+  @override
+  String get appsAdded => 'Added to applications';
+
+  @override
+  String get appsAll => 'All';
+
+  @override
+  String get appsStatusSaved => 'Saved';
+
+  @override
+  String get appsStatusPreparing => 'Preparing';
+
+  @override
+  String get appsStatusApplied => 'Applied';
+
+  @override
+  String get appsStatusInterview => 'Interview';
+
+  @override
+  String get appsStatusOffer => 'Offer';
+
+  @override
+  String get appsStatusRejected => 'Rejected';
+
+  @override
+  String get appsFieldRole => 'Role title';
+
+  @override
+  String get appsFieldCompany => 'Company';
+
+  @override
+  String get appsFieldStatus => 'Status';
+
+  @override
+  String get appsFieldCv => 'CV version sent';
+
+  @override
+  String get appsFieldCvCurrent => 'Current CV';
+
+  @override
+  String get appsFieldNotes => 'Notes';
+
+  @override
+  String get appsFieldNext => 'Next action';
+
+  @override
+  String get appsSave => 'Save';
+
+  @override
+  String get appsDelete => 'Delete application';
+
+  @override
+  String appsMatch(int score) {
+    return '$score% match';
+  }
+
+  @override
+  String appsAppliedOn(String date) {
+    return 'Applied $date';
+  }
+
+  @override
+  String get appsOpen => 'View applications';
+
+  @override
+  String homeOverviewLabel(String day) {
+    return '$day · Career overview';
+  }
+
+  @override
+  String homeImproveCta(int count) {
+    return 'Improve my CV · $count fixes';
+  }
+
+  @override
+  String get homeImproveCtaNone => 'Improve my CV';
+
+  @override
+  String get homeJobMatchAdd => 'Add a job';
+
+  @override
+  String get homeStepsTitle => 'Your next steps';
+
+  @override
+  String get homeStepAnalyze => 'Analyze your CV';
+
+  @override
+  String get homeStepAnalyzeHint => 'Upload a PDF or DOCX to get your scores.';
+
+  @override
+  String homeStepAnalyzeDone(int score) {
+    return 'CV quality $score/100';
+  }
+
+  @override
+  String get homeStepImprove => 'Fix weak lines';
+
+  @override
+  String get homeStepImproveHint => 'Available after your first analysis.';
+
+  @override
+  String homeStepImprovePending(int count) {
+    return '$count line fixes waiting for your review';
+  }
+
+  @override
+  String get homeStepImproveDone => 'Optimized version saved';
+
+  @override
+  String get homeStepImproveNone => 'No line fixes needed right now';
+
+  @override
+  String get homeStepMatch => 'Match a job posting';
+
+  @override
+  String get homeStepMatchHint => 'Paste a job description to see your gaps.';
+
+  @override
+  String homeStepMatchDone(int score, String title) {
+    return '$score% match · $title';
+  }
+
+  @override
+  String get homeStepTrack => 'Track your applications';
+
+  @override
+  String get homeStepTrackHint =>
+      'Keep status, CV version and next step in one place.';
+
+  @override
+  String homeStepTrackDone(int count) {
+    return '$count applications tracked';
+  }
+
+  @override
+  String get homeAppsActive => 'Active';
+
+  @override
+  String get homeNoMatchesHeadline => 'Your next application starts here.';
+
+  @override
+  String get homeToolsTitle => 'Tools';
+
+  @override
+  String get labelNoMatches => 'No matches yet';
+
+  @override
+  String get labelNoMatch => 'No match';
+
+  @override
+  String get labelNoResults => 'No results';
+
+  @override
+  String get labelNoDocuments => 'No documents';
+
+  @override
+  String get labelSections => 'Sections';
+
+  @override
+  String get labelEvidence => 'Evidence';
+
+  @override
+  String get labelWhatsWorking => 'What\'s working';
+
+  @override
+  String get labelWhyStronger => 'Why it\'s stronger';
+
+  @override
+  String get labelTopPriority => '01 — Top priority';
+
+  @override
+  String get labelBiggestGap => '01 — Biggest gap';
+
+  @override
+  String get improveThis => 'Improve this →';
+
+  @override
+  String get jobsHeaderLabel => 'Job match';
+
+  @override
+  String get jobsHeaderHeadline => 'See what the\nrole is asking for.';
+
+  @override
+  String get analyzeHeaderLabel => 'CV analysis';
+
+  @override
+  String get analyzeHeaderHeadline => 'Let\'s see what\nyour CV says.';
+
+  @override
+  String get builderHeaderLabel => 'My CVs';
+
+  @override
+  String get builderHeaderHeadline => 'Design your next CV.';
+
+  @override
+  String get profileHeaderLabel => 'Profile';
+
+  @override
+  String get alignmentStrong => 'Strong alignment';
+
+  @override
+  String get alignmentGood => 'Good alignment';
+
+  @override
+  String get alignmentPartial => 'Partial alignment';
+
+  @override
+  String get alignmentWeak => 'Weak alignment';
+
+  @override
+  String get onboardingKicker1 => 'Know';
+
+  @override
+  String get onboardingHeadline1 => 'Your CV,\ndecoded.';
+
+  @override
+  String get onboardingKicker2 => 'Match';
+
+  @override
+  String get onboardingHeadline2 => 'See what the\nrole is asking for.';
+
+  @override
+  String get onboardingKicker3 => 'Build';
+
+  @override
+  String get onboardingHeadline3 => 'Turn insight\ninto a stronger CV.';
 }

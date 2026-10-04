@@ -89,7 +89,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             CareerlySectionLabel('CAREERLY PRO', light: true),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Build every application\nwith more clarity.',
+              l10n.paywallHeadline,
               style: theme.textTheme.displayMedium?.copyWith(
                 color: Colors.white,
               ),
@@ -115,7 +115,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            CareerlySectionLabel('CHOOSE A PLAN', light: true),
+            CareerlySectionLabel(l10n.paywallChoosePlan, light: true),
             const SizedBox(height: AppSpacing.md),
             ...products.map((p) {
               final selected = _selected == p.productId;

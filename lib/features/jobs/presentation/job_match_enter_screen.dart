@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_router.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../billing/domain/billing_models.dart';
@@ -89,6 +90,7 @@ class _JobMatchEnterScreenState extends ConsumerState<JobMatchEnterScreen> {
                   .updateCompany(v),
             ),
             const SizedBox(height: AppSpacing.md),
+            if (AppConfig.instance.analysisEngine == AnalysisEngine.api) ...[
             AppTextField(
               controller: _url,
               label: l10n.jobsUrlLabel,
@@ -98,6 +100,7 @@ class _JobMatchEnterScreenState extends ConsumerState<JobMatchEnterScreen> {
                   ref.read(jobMatchControllerProvider.notifier).updateJobUrl(v),
             ),
             const SizedBox(height: AppSpacing.md),
+            ],
             AppTextField(
               controller: _description,
               label: l10n.jobsDescriptionLabel,

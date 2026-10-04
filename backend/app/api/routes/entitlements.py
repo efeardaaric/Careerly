@@ -80,7 +80,7 @@ async def record_usage(
     feature = LimitFeatureId(body.featureId.value)
 
     decision = decide_access(user_id=uid, feature=feature, tier=tier, status=status)
-    if not decision.allowed:
+    if not decision.allowed and not usage_tracker.is_duplicate(uid, feature, body.requestId):
         raise HTTPException(
             status_code=403,
             detail={

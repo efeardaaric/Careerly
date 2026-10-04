@@ -8,6 +8,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/careerly_identity.dart';
 import '../../analyze/application/analysis_controller.dart';
+import '../../applications/application/applications_controller.dart';
 import '../../home/presentation/home_shell.dart';
 import '../application/job_match_controller.dart';
 
@@ -20,14 +21,15 @@ class JobsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final state = ref.watch(jobMatchControllerProvider);
     final hasAnalysis = ref.watch(analysisControllerProvider).analysis != null;
+    final applicationCount = ref.watch(applicationsControllerProvider).length;
 
     return CareerlyScaffold(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           CareerlyEditorialHeader(
-            label: 'JOB MATCH',
-            headline: 'See what the\nrole is asking for.',
+            label: l10n.jobsHeaderLabel,
+            headline: l10n.jobsHeaderHeadline,
             supporting: l10n.jobsHowItWorksTitle,
             background: AppColors.iceBlue,
             trailing: const CareerlyDocumentPreview(
@@ -37,43 +39,52 @@ class JobsScreen extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.xl,
-              AppSpacing.page,
-              AppSpacing.xxl,
+            padding: EdgeInsets.only(
+              left: AppSpacing.pageInsets(context).left,
+              top: AppSpacing.xl,
+              right: AppSpacing.pageInsets(context).right,
+              bottom: AppSpacing.xxl,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (hasAnalysis)
+                if (state.savedMatches.isNotEmpty)
                   AppButton(
-                    label: l10n.jobsNewMatch,
+                    label: hasAnalysis ? l10n.jobsNewMatch : l10n.jobsNoCvCta,
                     onPressed: () {
+                      if (!hasAnalysis) {
+                        context.go(AppRoutes.analyze);
+                        return;
+                      }
                       ref
                           .read(jobMatchControllerProvider.notifier)
                           .startNewMatch();
                       context.push(AppRoutes.jobsNew);
                     },
-                  )
-                else
-                  AppButton(
-                    label: l10n.jobsNoCvCta,
-                    onPressed: () => context.go(AppRoutes.analyze),
                   ),
+                if (state.savedMatches.isNotEmpty)
+                  const SizedBox(height: AppSpacing.sm),
+                AppButton(
+                  label: applicationCount == 0
+                      ? l10n.appsTitle
+                      : '${l10n.appsTitle} · $applicationCount',
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => context.push(AppRoutes.applications),
+                ),
                 const SizedBox(height: AppSpacing.xl),
                 CareerlySectionLabel(l10n.jobsSavedTitle),
                 const SizedBox(height: AppSpacing.md),
                 if (state.savedMatches.isEmpty)
                   CareerlyEmptyState(
                     number: '00',
-                    label: 'NO MATCHES YET',
+                    label: l10n.labelNoMatches,
                     headline: hasAnalysis
-                        ? 'Your next application\nstarts here.'
+                        ? l10n.homeNoMatchesHeadline
                         : l10n.jobsNoCvTitle,
                     body: hasAnalysis ? l10n.jobsEmptyBody : l10n.jobsNoCvBody,
-                    actionLabel:
-                        hasAnalysis ? l10n.jobsNewMatch : l10n.jobsNoCvCta,
+                    actionLabel: hasAnalysis
+                        ? l10n.jobsNewMatch
+                        : l10n.jobsNoCvCta,
                     onAction: () {
                       if (!hasAnalysis) {
                         context.go(AppRoutes.analyze);
@@ -134,6 +145,13 @@ class JobsScreen extends ConsumerWidget {
                                     ],
                                   ),
                                 ),
+                                IconButton(
+                                  tooltip: l10n.jobsDelete,
+                                  onPressed: () => ref
+                                      .read(jobMatchControllerProvider.notifier)
+                                      .deleteSaved(match.id),
+                                  icon: const Icon(Icons.delete_outline),
+                                ),
                                 const Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 18,
@@ -178,10 +196,8 @@ class _Step extends StatelessWidget {
         children: [
           Text(
             number,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.cobalt,
-                  letterSpacing: 0,
-                ),
+            style: Theme.of(context).textTheme.labelMedium
+                ?.copyWith(color: AppColors.cobalt, letterSpacing: 0),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(

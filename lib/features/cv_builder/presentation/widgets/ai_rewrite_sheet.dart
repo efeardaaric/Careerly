@@ -185,7 +185,7 @@ class _AiRewriteSheetState extends ConsumerState<_AiRewriteSheet> {
                 ),
               ],
               const SizedBox(height: AppSpacing.md),
-              CareerlySectionLabel("WHY IT'S STRONGER"),
+              CareerlySectionLabel(l10n.labelWhyStronger),
               const SizedBox(height: AppSpacing.xs),
               Text(s.why, style: theme.textTheme.bodyMedium),
               if (s.needsUserFact) ...[

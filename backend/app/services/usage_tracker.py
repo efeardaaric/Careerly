@@ -1,19 +1,16 @@
-"""In-memory usage tracker with request-id idempotency.
-
-Phase 6: temporary store suitable for mock/dev. Production should swap for durable DB.
-Never log CV/JD/prompt content — only featureId + requestId + counts.
-"""
+"""Durable usage counters with atomic limits and per-user request idempotency."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from threading import Lock
 
-from app.core.security import get_logger
+from fastapi import HTTPException
+from sqlalchemy import delete, select, update
+from sqlalchemy.orm import Session
+
+from app.db.billing import billing_session, insert_for
+from app.db.models import UsageCounter, UsageRequest
 from app.services.plan_limits import PLAN_LIMITS, FeatureId, SubscriptionTier
-
-logger = get_logger(__name__)
 
 
 def _period_key(period: str, now: datetime | None = None) -> str:
@@ -34,29 +31,30 @@ def _reset_at(period: str, now: datetime | None = None) -> datetime | None:
     return datetime(now.year, now.month + 1, 1, tzinfo=UTC)
 
 
-@dataclass
-class UsageStore:
-    # userId -> featureId -> periodKey -> count
-    counts: dict[str, dict[str, dict[str, int]]] = field(default_factory=dict)
-    # requestId -> recorded payload fingerprint
-    seen_requests: dict[str, str] = field(default_factory=dict)
-    lock: Lock = field(default_factory=Lock)
-
-
-_STORE = UsageStore()
-
-
 def reset_usage_store_for_tests() -> None:
-    with _STORE.lock:
-        _STORE.counts.clear()
-        _STORE.seen_requests.clear()
+    with billing_session() as session:
+        session.execute(delete(UsageRequest))
+        session.execute(delete(UsageCounter))
 
 
-def get_used(user_id: str, feature: FeatureId) -> int:
+def get_used(user_id: str, feature: FeatureId, session: Session | None = None) -> int:
     limit = PLAN_LIMITS[feature]
     period = _period_key(limit.period)
-    with _STORE.lock:
-        return _STORE.counts.get(user_id, {}).get(feature.value, {}).get(period, 0)
+    with billing_session(session) as database:
+        return database.scalar(select(UsageCounter.count).where(
+            UsageCounter.user_id == user_id,
+            UsageCounter.feature_id == feature.value,
+            UsageCounter.period == period,
+        )) or 0
+
+
+def is_duplicate(user_id: str, feature: FeatureId, request_id: str) -> bool:
+    with billing_session() as session:
+        row = session.get(UsageRequest, (user_id, request_id))
+        return bool(
+            row and row.feature_id == feature.value
+            and row.period == _period_key(PLAN_LIMITS[feature].period)
+        )
 
 
 def list_usage(user_id: str, tier: SubscriptionTier) -> list[dict]:
@@ -88,6 +86,7 @@ def record_usage(
     feature: FeatureId,
     request_id: str,
     tier: SubscriptionTier,
+    session: Session | None = None,
 ) -> tuple[bool, bool, int]:
     """Returns (recorded, duplicate, used_after).
 
@@ -98,46 +97,41 @@ def record_usage(
         return False, False, get_used(user_id, feature)
 
     period = _period_key(limit.period)
-    fingerprint = f"{user_id}:{feature.value}:{period}"
-
-    with _STORE.lock:
-        prior = _STORE.seen_requests.get(request_id)
-        if prior == fingerprint:
-            used = _STORE.counts.get(user_id, {}).get(feature.value, {}).get(period, 0)
-            logger.info(
-                "usage_duplicate user=%s feature=%s request_id=%s used=%s",
-                user_id,
-                feature.value,
-                request_id[:12],
-                used,
+    cap = limit.pro_limit if tier == SubscriptionTier.pro else limit.free_limit
+    with billing_session(session) as database:
+        inserted = database.execute(
+            insert_for(database, UsageRequest).values(
+                user_id=user_id, request_id=request_id,
+                feature_id=feature.value, period=period,
+            ).on_conflict_do_nothing()
+        )
+        if inserted.rowcount == 0:
+            prior = database.get(UsageRequest, (user_id, request_id))
+            if prior.feature_id != feature.value or prior.period != period:
+                raise HTTPException(
+                    status_code=409,
+                    detail={"code": "request_id_conflict", "message": "Request ID already used."},
+                )
+            return False, True, get_used(user_id, feature, database)
+        database.execute(
+            insert_for(database, UsageCounter).values(
+                user_id=user_id, feature_id=feature.value, period=period, count=0,
+            ).on_conflict_do_nothing()
+        )
+        statement = update(UsageCounter).where(
+            UsageCounter.user_id == user_id,
+            UsageCounter.feature_id == feature.value,
+            UsageCounter.period == period,
+        )
+        if cap is not None:
+            statement = statement.where(UsageCounter.count < cap)
+        result = database.execute(statement.values(count=UsageCounter.count + 1))
+        if result.rowcount == 0:
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "limitReached", "message": "Plan limit reached."},
             )
-            return False, True, used
-
-        if prior is not None:
-            # Same request id reused for different action — treat as duplicate reject.
-            used = _STORE.counts.get(user_id, {}).get(feature.value, {}).get(period, 0)
-            return False, True, used
-
-        bucket = _STORE.counts.setdefault(user_id, {}).setdefault(feature.value, {})
-        used = bucket.get(period, 0) + 1
-        bucket[period] = used
-        _STORE.seen_requests[request_id] = fingerprint
-
-        # Bound memory of request ids
-        if len(_STORE.seen_requests) > 5000:
-            # Drop arbitrary oldest half by rebuilding
-            keys = list(_STORE.seen_requests.keys())[:2500]
-            for k in keys:
-                _STORE.seen_requests.pop(k, None)
-
-    logger.info(
-        "usage_recorded user=%s feature=%s request_id=%s used=%s",
-        user_id,
-        feature.value,
-        request_id[:12],
-        used,
-    )
-    return True, False, used
+        return True, False, get_used(user_id, feature, database)
 
 
 def peek_remaining(user_id: str, feature: FeatureId, tier: SubscriptionTier) -> tuple[int, int | None, int | None]:

@@ -9,13 +9,11 @@ import '../../../app/session/session_controller.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/careerly_identity.dart';
-import '../../analyze/application/analysis_controller.dart';
 import '../../billing/application/billing_controller.dart';
 import '../../billing/data/mock_subscription_repository.dart';
 import '../../billing/domain/billing_models.dart';
 import '../../billing/presentation/paywall_screen.dart';
 import '../../home/presentation/home_shell.dart';
-import '../../jobs/application/job_match_controller.dart';
 import '../../personalization/domain/personalization_models.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -65,6 +63,39 @@ class ProfileScreen extends ConsumerWidget {
       'education' => l10n.fieldEducation,
       _ => l10n.fieldOther,
     };
+  }
+
+  Future<void> _editFirstName(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController(
+      text: ref.read(sessionProvider).firstName ?? '',
+    );
+    final saved = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.profileFirstName),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text(l10n.done),
+            ),
+          ],
+        );
+      },
+    );
+    if (saved != null) {
+      await ref.read(sessionProvider.notifier).setFirstName(saved);
+    }
   }
 
   Future<void> _changeLanguage(BuildContext context, WidgetRef ref) async {
@@ -125,10 +156,6 @@ class ProfileScreen extends ConsumerWidget {
       },
     );
     if (confirmed != true) return;
-    await ref
-        .read(analysisControllerProvider.notifier)
-        .clearPersistedAnalysis();
-    await ref.read(jobMatchControllerProvider.notifier).clearSavedMatches();
     await ref.read(sessionProvider.notifier).resetDemo();
     if (context.mounted) context.go(AppRoutes.language);
   }
@@ -155,10 +182,6 @@ class ProfileScreen extends ConsumerWidget {
       },
     );
     if (confirmed != true) return;
-    await ref
-        .read(analysisControllerProvider.notifier)
-        .clearPersistedAnalysis();
-    await ref.read(jobMatchControllerProvider.notifier).clearSavedMatches();
     await ref.read(sessionProvider.notifier).deleteLocalAccount();
     if (context.mounted) context.go(AppRoutes.language);
   }
@@ -176,23 +199,34 @@ class ProfileScreen extends ConsumerWidget {
         padding: EdgeInsets.zero,
         children: [
           CareerlyEditorialHeader(
-            label: 'PROFILE',
-            headline: session.displayName ?? l10n.profileMockUser,
+            label: l10n.profileHeaderLabel,
+            headline:
+                session.greetingName ??
+                session.firstName ??
+                l10n.profileMockUser,
             supporting: session.email ?? l10n.authMockBanner,
             background: AppColors.cream,
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.xl,
-              AppSpacing.page,
-              AppSpacing.xxl,
+            padding: EdgeInsets.only(
+              left: AppSpacing.pageInsets(context).left,
+              top: AppSpacing.xl,
+              right: AppSpacing.pageInsets(context).right,
+              bottom: AppSpacing.xxl,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CareerlySectionLabel(l10n.profilePreferences),
                 const SizedBox(height: AppSpacing.md),
+                _QuietRow(
+                  label: l10n.profileFirstName,
+                  value: session.firstName?.trim().isNotEmpty == true
+                      ? session.firstName!
+                      : l10n.profileNotSet,
+                  onTap: () => _editFirstName(context, ref),
+                ),
+                const CareerlyHairline(),
                 _QuietRow(
                   label: l10n.profileLanguage,
                   value: session.localeCode == 'tr'
@@ -227,7 +261,10 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.xl),
                 CareerlySectionLabel(l10n.profilePrivacy),
                 const SizedBox(height: AppSpacing.sm),
-                Text(l10n.profilePrivacyBody, style: theme.textTheme.bodyMedium),
+                Text(
+                  l10n.profilePrivacyBody,
+                  style: theme.textTheme.bodyMedium,
+                ),
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
                   label: l10n.signOut,
@@ -264,11 +301,7 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 class _QuietRow extends StatelessWidget {
-  const _QuietRow({
-    required this.label,
-    required this.value,
-    this.onTap,
-  });
+  const _QuietRow({required this.label, required this.value, this.onTap});
 
   final String label;
   final String value;
@@ -320,15 +353,29 @@ class _PlanCard extends ConsumerWidget {
       _ => l10n.billingStatusFree,
     };
     final planLabel = isPro ? l10n.billingPlanPro : l10n.billingPlanFree;
+    final headline = isPro
+        ? '$planLabel · $statusLabel'
+        : l10n.billingStatusFree;
 
     return CareerlyColorSection(
       tone: CareerlySurfaceTone.neutral,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$planLabel · $statusLabel', style: theme.textTheme.titleMedium),
+          Text(headline, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.xs),
           Text(l10n.billingPlanBody, style: theme.textTheme.bodyMedium),
+          const SizedBox(height: AppSpacing.sm),
+          for (final counter in ent?.usage ?? const <UsageCounter>[])
+            if (counter.featureId == FeatureId.cvAnalysis ||
+                counter.featureId == FeatureId.jobMatch)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xxs),
+                child: Text(
+                  '${counter.featureId == FeatureId.cvAnalysis ? l10n.profileUsageAnalyses : l10n.profileUsageMatches} · ${counter.limit == null ? '${counter.used}' : l10n.profileUsageMeter(counter.used, counter.limit!)}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
           const SizedBox(height: AppSpacing.md),
           if (!isPro)
             AppButton(

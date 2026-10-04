@@ -6,7 +6,10 @@ abstract class ResumeAnalysisRepository {
   Future<void> validateCvFile(SelectedCvFile file);
 
   /// Mock or remote parse. Returns structured sections for user review.
-  Future<ParsedResume> parseResume(SelectedCvFile file);
+  Future<ParsedResume> parseResume(
+    SelectedCvFile file, {
+    void Function(AnalysisProcessingStage stage)? onStage,
+  });
 
   /// Mock or remote scoring. Must not invent experience beyond fixture/backend.
   Future<ResumeAnalysis> analyzeResume({
