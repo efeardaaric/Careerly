@@ -137,6 +137,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authGenericError => 'Something went wrong. Please try again.';
 
   @override
+  String get authEmailConfirmation =>
+      'Check your email to confirm your account, then sign in.';
+
+  @override
   String get authSuccess => 'You\'re signed in.';
 
   @override

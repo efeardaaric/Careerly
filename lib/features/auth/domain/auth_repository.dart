@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
 import '../data/mock_auth_repository.dart';
+import '../data/supabase_auth_repository.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Shared auth user — mock or production IdP.
 class AuthUser extends Equatable {
@@ -11,18 +14,26 @@ class AuthUser extends Equatable {
     required this.displayName,
     required this.provider,
     this.accessToken,
+    this.userId,
   });
 
   final String email;
   final String displayName;
   final String provider;
+  final String? userId;
 
   /// Opaque access token for backend Authorization header.
   /// Null for legacy mock session until a token is minted.
   final String? accessToken;
 
   @override
-  List<Object?> get props => [email, displayName, provider, accessToken];
+  List<Object?> get props => [
+    email,
+    displayName,
+    provider,
+    accessToken,
+    userId,
+  ];
 }
 
 abstract class AuthRepository {
@@ -97,6 +108,9 @@ class MockAuthRepositoryAdapter implements AuthRepository {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  if (AppConfig.instance.usesSupabase) {
+    return SupabaseAuthRepository(Supabase.instance.client);
+  }
   if (!AppConfig.instance.allowsMockAuth) {
     return ProductionAuthRepository();
   }

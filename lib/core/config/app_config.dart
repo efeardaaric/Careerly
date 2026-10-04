@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 /// Environment-aware configuration. No API keys belong in the client.
@@ -24,12 +26,17 @@ class AppConfig {
     required this.analysisEngine,
     required this.allowsMockAuth,
     required this.allowsMockBilling,
+    required this.supabaseUrl,
+    required this.supabasePublishableKey,
   });
 
   static late final AppConfig instance;
 
   final AppEnvironment environment;
   final String apiBaseUrl;
+  final String supabaseUrl;
+  final String supabasePublishableKey;
+  bool get usesSupabase => supabaseUrl.isNotEmpty;
 
   /// Analysis backend. Production is always [AnalysisEngine.api].
   final AnalysisEngine analysisEngine;
@@ -47,6 +54,19 @@ class AppConfig {
 
   bool get isDev => environment == AppEnvironment.dev;
   bool get isProduction => environment == AppEnvironment.production;
+
+  static bool isPublicSupabaseKey(String key) {
+    if (key.startsWith('sb_publishable_')) return true;
+    try {
+      final payload = key.split('.')[1];
+      final decoded = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(payload))),
+      );
+      return decoded is Map && decoded['role'] == 'anon';
+    } catch (_) {
+      return false;
+    }
+  }
 
   static bool _isLoopback(String url) {
     final lower = url.toLowerCase();
@@ -119,7 +139,27 @@ class AppConfig {
       useMockAnalysis: analysisEngine == AnalysisEngine.mock,
     );
 
-    final allowsMockAuth = environment != AppEnvironment.production;
+    const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+    const supabasePublishableKey = String.fromEnvironment(
+      'SUPABASE_PUBLISHABLE_KEY',
+    );
+    if (supabaseUrl.isNotEmpty != supabasePublishableKey.isNotEmpty) {
+      throw ProductionConfigException(
+        'SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must be set together.',
+      );
+    }
+    if (supabaseUrl.isNotEmpty &&
+        Uri.tryParse(supabaseUrl)?.scheme != 'https') {
+      throw ProductionConfigException('SUPABASE_URL must use HTTPS.');
+    }
+    if (supabaseUrl.isNotEmpty &&
+        !isPublicSupabaseKey(supabasePublishableKey)) {
+      throw ProductionConfigException(
+        'Only a publishable or legacy anon key may be shipped in Flutter.',
+      );
+    }
+    final allowsMockAuth =
+        environment != AppEnvironment.production && supabaseUrl.isEmpty;
     final allowsMockBilling =
         environment != AppEnvironment.production && !kReleaseMode;
 
@@ -129,6 +169,8 @@ class AppConfig {
       analysisEngine: analysisEngine,
       allowsMockAuth: allowsMockAuth,
       allowsMockBilling: allowsMockBilling,
+      supabaseUrl: supabaseUrl,
+      supabasePublishableKey: supabasePublishableKey,
     );
 
     if (kDebugMode) {
@@ -143,6 +185,11 @@ class AppConfig {
   /// Runtime guard for release+production binaries.
   void assertReleaseSafe() {
     if (!isProduction) return;
+    if (!usesSupabase) {
+      throw ProductionConfigException(
+        'Supabase Auth must be configured in production.',
+      );
+    }
     if (useMockAnalysis) {
       throw ProductionConfigException('mock analysis active in production');
     }

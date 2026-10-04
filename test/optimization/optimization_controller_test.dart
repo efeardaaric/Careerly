@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:careerly/app/session/session_controller.dart';
+import 'package:careerly/core/config/app_config.dart';
 
 import 'package:careerly/core/storage/local_store.dart';
 import 'package:careerly/features/analyze/data/api_resume_analysis_repository.dart';
@@ -137,6 +138,7 @@ class _DelayedSuggestions extends LocalSuggestionRepository {
 }
 
 void main() {
+  setUpAll(AppConfig.bootstrap);
   test(
     'accepting does not change scores; only the engine result does',
     () async {

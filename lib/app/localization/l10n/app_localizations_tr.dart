@@ -138,6 +138,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authGenericError => 'Bir şeyler ters gitti. Lütfen tekrar dene.';
 
   @override
+  String get authEmailConfirmation =>
+      'Hesabını doğrulamak için e-postanı kontrol et, ardından giriş yap.';
+
+  @override
   String get authSuccess => 'Giriş yapıldı.';
 
   @override

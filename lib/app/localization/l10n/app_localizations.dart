@@ -344,6 +344,12 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get authGenericError;
 
+  /// No description provided for @authEmailConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email to confirm your account, then sign in.'**
+  String get authEmailConfirmation;
+
   /// No description provided for @authSuccess.
   ///
   /// In en, this message translates to:

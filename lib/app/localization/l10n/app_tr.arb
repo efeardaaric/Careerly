@@ -44,6 +44,7 @@
   "authEmailRequired": "Geçerli bir e-posta gir.",
   "authPasswordRequired": "Şifre en az 8 karakter olmalı.",
   "authGenericError": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+  "authEmailConfirmation": "Hesabını doğrulamak için e-postanı kontrol et, ardından giriş yap.",
   "authSuccess": "Giriş yapıldı.",
   "authShowPassword": "Şifreyi göster",
   "authHidePassword": "Şifreyi gizle",

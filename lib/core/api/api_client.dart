@@ -122,7 +122,8 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(
     baseUrl: AppConfig.instance.apiBaseUrl,
     accessToken: () => ref.read(sessionProvider).accessToken,
-    userId: () => ref.read(sessionProvider).email,
+    userId: () =>
+        ref.read(sessionProvider).userId ?? ref.read(sessionProvider).email,
     userGeneration: () => store.userGeneration,
   );
 });

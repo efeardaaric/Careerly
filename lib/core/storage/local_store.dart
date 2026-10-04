@@ -146,6 +146,7 @@ class LocalStore {
     await _prefs.remove('billing_dev_override');
     await _prefs.remove('billing_entitlement_cache_json');
     await _prefs.remove('auth_access_token');
+    await _prefs.remove('supabase_user_id');
     // Phase 5 Builder documents.
     for (final key in _prefs.getKeys().where(
       (k) => k == 'builder_resume_ids' || k.startsWith('builder_resume_'),
@@ -171,6 +172,7 @@ class LocalStore {
       _keyCvLanguage,
       _keyFirstName,
       'auth_access_token',
+      'supabase_user_id',
       'last_resume_analysis_json',
       'active_cv_record_json',
       'cv_versions_json',

@@ -37,7 +37,7 @@ def get_session_factory() -> sessionmaker[Session]:
 def init_db() -> None:
     settings = get_settings()
     # Production schema changes go through Alembic. Dev/test may create tables.
-    if settings.is_production:
+    if settings.is_production or settings.auth_mode.lower().strip() == "supabase":
         return
     Base.metadata.create_all(get_engine())
 

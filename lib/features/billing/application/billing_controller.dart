@@ -297,7 +297,7 @@ final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
 final billingControllerProvider =
     StateNotifierProvider<BillingController, BillingUiState>((ref) {
       final session = ref.watch(sessionProvider);
-      final userId = session.email ?? 'anonymous';
+      final userId = session.userId ?? session.email ?? 'anonymous';
       final controller = BillingController(
         subscriptionRepository: ref.watch(subscriptionRepositoryProvider),
         purchaseProvider: ref.watch(purchaseProviderProvider),

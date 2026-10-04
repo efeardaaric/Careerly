@@ -45,6 +45,7 @@
   "authEmailRequired": "Enter a valid email address.",
   "authPasswordRequired": "Password must be at least 8 characters.",
   "authGenericError": "Something went wrong. Please try again.",
+  "authEmailConfirmation": "Check your email to confirm your account, then sign in.",
   "authSuccess": "You're signed in.",
   "authShowPassword": "Show password",
   "authHidePassword": "Hide password",

@@ -1,0 +1,6 @@
+{
+  "ENV": "dev",
+  "SUPABASE_URL": "https://PROJECT_REF.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "YOUR_PUBLISHABLE_KEY",
+  "API_BASE_URL": "http://127.0.0.1:8787"
+}

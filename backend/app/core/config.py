@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     # dev | hmac — production requires hmac + AUTH_TOKEN_SECRET
     auth_mode: str = "dev"
     auth_token_secret: str | None = None
+    supabase_url: str | None = None
+    supabase_publishable_key: str | None = None
     database_url: str = "sqlite:///./careerly_dev.db"
     ai_enabled: bool = False
     store_original_cv: bool = False
@@ -47,6 +49,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _assert_production_safety(self) -> "Settings":
+        if self.auth_mode.lower().strip() == "supabase":
+            if not (self.supabase_url or "").startswith("https://"):
+                raise ValueError("SUPABASE_URL must be an HTTPS project URL.")
+            if not (self.supabase_publishable_key or "").strip():
+                raise ValueError("SUPABASE_PUBLISHABLE_KEY is required for Supabase Auth.")
         if not self.is_production:
             return self
         errors: list[str] = []
@@ -70,12 +77,12 @@ class Settings(BaseSettings):
                 "CORS_ORIGINS=* is forbidden in production. "
                 "EXTERNAL ACTION: set explicit allowlist."
             )
-        if (self.auth_mode or "").lower() != "hmac":
+        if (self.auth_mode or "").lower() not in {"hmac", "supabase"}:
             errors.append(
-                "AUTH_MODE must be hmac when APP_ENV=production "
+                "AUTH_MODE must be hmac or supabase when APP_ENV=production "
                 "(client X-User-Id is not trusted)."
             )
-        if not (self.auth_token_secret or "").strip():
+        if self.auth_mode.lower() == "hmac" and not (self.auth_token_secret or "").strip():
             errors.append(
                 "AUTH_TOKEN_SECRET is required when APP_ENV=production. "
                 "EXTERNAL ACTION: provision a strong secret (do not commit it)."

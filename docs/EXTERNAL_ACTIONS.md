@@ -7,11 +7,10 @@ These items **cannot** be completed honestly inside this repository without real
 **Why:** Production builds fail closed on mock email/password auth.  
 **Steps:**
 
-1. Choose IdP (Firebase Auth, Auth0, Cognito, or native Apple/Google).
-2. Configure iOS/Android OAuth clients.
-3. Issue short-lived access tokens; backend `AUTH_MODE=hmac` (or replace with JWT JWKS verify).
-4. Set `AUTH_TOKEN_SECRET` (or JWKS URL) in secret manager — **never commit**.
-5. Wire `ProductionAuthRepository` to the SDK.
+1. Supabase Auth SDK, secure session storage and server token validation are implemented. Complete live project creation and follow `docs/SUPABASE_SETUP.md`.
+2. Configure project URL/public key, email confirmation destinations and any Apple/Google OAuth clients.
+3. Set backend `AUTH_MODE=supabase` and the same project URL/public key; connect the private PostgreSQL URL through server environment secrets.
+4. Configure a separate TLS host for FastAPI and verify login, refresh, signout and ownership isolation against the actual project.
 
 **Owner:** Mobile + backend eng  
 **Blocks:** READY FOR STORE SUBMISSION

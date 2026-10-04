@@ -42,7 +42,7 @@ CV pipeline:
 - `GET /api/v1/cvs`, `GET /api/v1/cvs/{cv_id}`, `GET /api/v1/cvs/{cv_id}/analysis`
 - `DELETE /api/v1/cvs/{cv_id}`
 
-Development auth accepts `Authorization: Bearer dev:<user>` or `X-User-Id`. Production requires `AUTH_MODE=hmac` and ignores `X-User-Id`.
+Development `AUTH_MODE=dev` accepts `Authorization: Bearer dev:<user>` or `X-User-Id`. Production accepts `AUTH_MODE=hmac` or `AUTH_MODE=supabase` and ignores `X-User-Id`. Supabase mode validates bearer tokens with the configured project even in development, uses verified user UUIDs and never accepts anonymous/header-only requests. See `../docs/SUPABASE_SETUP.md` for migration and connection details.
 
 Billing counters, idempotency records and subscriptions are stored in SQL tables. Existing databases must run `alembic upgrade head` before production startup. Development creates missing tables automatically.
 

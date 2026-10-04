@@ -17,7 +17,7 @@ Calm, bilingual (EN/TR) career companion for CV readiness, ATS clarity, job matc
 - **Phase 8.1:** RC1 blocker fixes — production fail-closed config/auth/billing, backend Bearer auth + IDOR, release docs. **READY FOR INTERNAL TESTING** (not store submission).
 - **UI/UX polish:** Visual-only pass — design tokens, shared processing view, reduced card density, signature-screen hierarchy (see polish report in agent docs store).
 
-Not included: OCR, cover letters, interview AI, scraping, credits marketplace, real production login/purchases, store publishing.
+Not included: OCR, cover letters, interview AI, scraping, credits marketplace, live production configuration, real purchase verification, store publishing. Supabase Auth and migration support are implemented; cloud setup is pending.
 
 ## Stack
 
@@ -76,3 +76,6 @@ flutter analyze --no-pub
 flutter test --no-pub
 cd backend && pytest -q && ruff check app tests
 ```
+## Supabase setup
+
+See [Supabase integration status and configuration](docs/SUPABASE_SETUP.md) for real Auth, secure sessions, PostgreSQL migrations and the remaining dashboard/deployment steps.

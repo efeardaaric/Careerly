@@ -15,7 +15,7 @@
 
 ## Still required before production
 
-- Choose/configure a real identity provider, connect its Flutter SDK, verify its tokens on the backend and move production tokens to secure storage.
+- Supabase SDK, secure tokens and backend verification are now implemented; complete live project provisioning and verification in `docs/SUPABASE_SETUP.md`.
 - Configure Apple/Google product IDs, connect native purchases, implement receipt validation and renewal/refund notifications. Existing production providers deliberately remain unavailable.
 - Connect local account deletion to authenticated backend-wide deletion; define a retention policy for CV and billing data.
 - Provision a TLS API host, database, CORS allowlist, legal pages and signed store builds.

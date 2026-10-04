@@ -6,7 +6,9 @@ import hashlib
 import hmac
 import time
 from dataclasses import dataclass
+from uuid import UUID
 
+import httpx
 from fastapi import Depends, Header, HTTPException
 
 from app.core.config import Settings, get_settings
@@ -101,10 +103,13 @@ async def require_principal(
     """
     if authorization and authorization.lower().startswith("bearer "):
         token = authorization.split(" ", 1)[1].strip()
-        user_id = verify_bearer_token(token, settings=settings)
+        if settings.auth_mode.lower().strip() == "supabase":
+            user_id = await verify_supabase_token(token, settings=settings)
+        else:
+            user_id = verify_bearer_token(token, settings=settings)
         return AuthPrincipal(user_id=user_id, auth_mode=settings.auth_mode)
 
-    if settings.is_production:
+    if settings.is_production or settings.auth_mode.lower().strip() == "supabase":
         raise _unauthorized(
             "Authorization Bearer token required in production. "
             "Client-supplied X-User-Id is not accepted."
@@ -112,3 +117,27 @@ async def require_principal(
 
     uid = (x_user_id or "anonymous").strip() or "anonymous"
     return AuthPrincipal(user_id=uid, auth_mode="dev-header")
+
+
+async def verify_supabase_token(token: str, *, settings: Settings) -> str:
+    if not token:
+        raise _unauthorized("Missing access token.")
+    try:
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=False) as client:
+            response = await client.get(
+                f"{settings.supabase_url.rstrip('/')}/auth/v1/user",
+                headers={
+                    "apikey": settings.supabase_publishable_key,
+                    "Authorization": f"Bearer {token}",
+                },
+            )
+    except httpx.RequestError as exc:
+        raise HTTPException(status_code=503, detail="Authentication service unavailable.") from exc
+    if response.status_code in {401, 403}:
+        raise _unauthorized("Invalid or expired Supabase session.")
+    if response.status_code != 200:
+        raise HTTPException(status_code=503, detail="Authentication service unavailable.")
+    try:
+        return str(UUID(response.json()["id"]))
+    except (ValueError, KeyError, TypeError) as exc:
+        raise _unauthorized("Invalid identity response.") from exc

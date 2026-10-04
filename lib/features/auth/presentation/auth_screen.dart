@@ -16,6 +16,7 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/careerly_identity.dart';
 import '../../home/presentation/home_shell.dart';
 import '../domain/auth_repository.dart';
+import '../data/supabase_auth_repository.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -54,17 +55,21 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         password: _passwordController.text,
         createAccount: _signUpMode,
       );
-      await ref
-          .read(sessionProvider.notifier)
-          .signInMock(
-            email: result.email,
-            displayName: result.displayName,
-            accessToken: result.accessToken,
-          );
+      if (!AppConfig.instance.usesSupabase) {
+        await ref
+            .read(sessionProvider.notifier)
+            .signInMock(
+              email: result.email,
+              displayName: result.displayName,
+              accessToken: result.accessToken,
+            );
+      }
       if (!mounted) return;
       context.go(AppRoutes.personalization);
+    } on EmailConfirmationRequired {
+      if (mounted) setState(() => _error = l10n.authEmailConfirmation);
     } catch (_) {
-      setState(() => _error = l10n.authGenericError);
+      if (mounted) setState(() => _error = l10n.authGenericError);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -100,96 +105,98 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                if (AppConfig.instance.allowsMockAuth) ...[
-                CareerlyColorSection(
-                  tone: CareerlySurfaceTone.cream,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  child: Row(
-                    children: [
-                      const CareerlyStatusMarker(
-                        color: AppColors.coral,
-                        shape: CareerlyMarkerShape.diamond,
+                      if (AppConfig.instance.allowsMockAuth) ...[
+                        CareerlyColorSection(
+                          tone: CareerlySurfaceTone.cream,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                          child: Row(
+                            children: [
+                              const CareerlyStatusMarker(
+                                color: AppColors.coral,
+                                shape: CareerlyMarkerShape.diamond,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Expanded(
+                                child: Text(
+                                  l10n.authMockBanner,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: AppColors.navyMuted,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.lg),
+                      AppTextField(
+                        controller: _emailController,
+                        label: l10n.authEmailLabel,
+                        hint: l10n.authEmailHint,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        autofillHints: const [AutofillHints.email],
+                        validator: (value) {
+                          final v = value?.trim() ?? '';
+                          final ok = RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v);
+                          return ok ? null : l10n.authEmailRequired;
+                        },
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          l10n.authMockBanner,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.navyMuted,
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
+                        controller: _passwordController,
+                        label: l10n.authPasswordLabel,
+                        hint: l10n.authPasswordHint,
+                        obscureText: _obscure,
+                        textInputAction: TextInputAction.done,
+                        autofillHints: const [AutofillHints.password],
+                        onSubmitted: (_) => _submitEmail(),
+                        validator: (value) {
+                          final v = value ?? '';
+                          return v.length >= 8
+                              ? null
+                              : l10n.authPasswordRequired;
+                        },
+                        suffix: IconButton(
+                          tooltip: _obscure
+                              ? l10n.authShowPassword
+                              : l10n.authHidePassword,
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                          icon: Icon(
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-                AppTextField(
-                  controller: _emailController,
-                  label: l10n.authEmailLabel,
-                  hint: l10n.authEmailHint,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.email],
-                  validator: (value) {
-                    final v = value?.trim() ?? '';
-                    final ok = RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v);
-                    return ok ? null : l10n.authEmailRequired;
-                  },
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppTextField(
-                  controller: _passwordController,
-                  label: l10n.authPasswordLabel,
-                  hint: l10n.authPasswordHint,
-                  obscureText: _obscure,
-                  textInputAction: TextInputAction.done,
-                  autofillHints: const [AutofillHints.password],
-                  onSubmitted: (_) => _submitEmail(),
-                  validator: (value) {
-                    final v = value ?? '';
-                    return v.length >= 8 ? null : l10n.authPasswordRequired;
-                  },
-                  suffix: IconButton(
-                    tooltip: _obscure
-                        ? l10n.authShowPassword
-                        : l10n.authHidePassword,
-                    onPressed: () => setState(() => _obscure = !_obscure),
-                    icon: Icon(
-                      _obscure
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                    ),
-                  ),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    _error!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.critical,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-                AppButton(
-                  label: _signUpMode ? l10n.authSignUp : l10n.authSignIn,
-                  onPressed: _submitEmail,
-                  isLoading: _loading,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                AppButton(
-                  label: _signUpMode
-                      ? l10n.authSwitchToSignIn
-                      : l10n.authSwitchToSignUp,
-                  variant: AppButtonVariant.ghost,
-                  onPressed: _loading
-                      ? null
-                      : () => setState(() => _signUpMode = !_signUpMode),
-                ),
+                      if (_error != null) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          _error!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.critical,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.lg),
+                      AppButton(
+                        label: _signUpMode ? l10n.authSignUp : l10n.authSignIn,
+                        onPressed: _submitEmail,
+                        isLoading: _loading,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppButton(
+                        label: _signUpMode
+                            ? l10n.authSwitchToSignIn
+                            : l10n.authSwitchToSignUp,
+                        variant: AppButtonVariant.ghost,
+                        onPressed: _loading
+                            ? null
+                            : () => setState(() => _signUpMode = !_signUpMode),
+                      ),
                     ],
                   ),
                 ),

@@ -1,8 +1,13 @@
 import 'package:equatable/equatable.dart';
+
+import 'dart:async';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/storage/local_store.dart';
+import '../../core/config/app_config.dart';
 import '../../features/personalization/domain/personalization_models.dart';
 
 /// Aggregated session flags driving GoRouter redirects.
@@ -16,6 +21,7 @@ class SessionState extends Equatable {
     this.displayName,
     this.firstName,
     this.accessToken,
+    this.userId,
     this.careerStage,
     this.goal,
     this.fields = const [],
@@ -31,6 +37,7 @@ class SessionState extends Equatable {
   final String? displayName;
   final String? firstName;
   final String? accessToken;
+  final String? userId;
   final CareerStage? careerStage;
   final CareerGoal? goal;
   final List<String> fields;
@@ -71,6 +78,7 @@ class SessionState extends Equatable {
     String? firstName,
     bool clearFirstName = false,
     String? accessToken,
+    String? userId,
     bool clearAuthProfile = false,
     CareerStage? careerStage,
     CareerGoal? goal,
@@ -90,6 +98,7 @@ class SessionState extends Equatable {
           ? null
           : (firstName ?? this.firstName),
       accessToken: clearAuthProfile ? null : (accessToken ?? this.accessToken),
+      userId: clearAuthProfile ? null : (userId ?? this.userId),
       careerStage: careerStage ?? this.careerStage,
       goal: goal ?? this.goal,
       fields: fields ?? this.fields,
@@ -108,6 +117,7 @@ class SessionState extends Equatable {
     displayName,
     firstName,
     accessToken,
+    userId,
     careerStage,
     goal,
     fields,
@@ -117,25 +127,91 @@ class SessionState extends Equatable {
 }
 
 class SessionController extends StateNotifier<SessionState> {
-  SessionController(this._store)
-    : super(
+  SessionController(this._store, {SupabaseClient? supabase})
+    : _supabase = supabase,
+      super(
         SessionState(
           localeCode: _store.localeCode,
           onboardingCompleted: _store.onboardingCompleted,
-          isAuthenticated: _store.isMockSignedIn,
+          isAuthenticated: supabase == null && _store.isMockSignedIn,
           personalizationCompleted: _store.personalizationCompleted,
           email: _store.mockEmail,
           displayName: _store.mockDisplayName,
           firstName: _store.firstName,
-          accessToken: _store.readString('auth_access_token'),
+          accessToken: supabase == null
+              ? _store.readString('auth_access_token')
+              : null,
           careerStage: CareerStage.fromStorage(_store.careerStage),
           goal: CareerGoal.fromStorage(_store.goal),
           fields: _store.fields,
           cvLanguage: CvLanguagePreference.fromStorage(_store.cvLanguage),
         ),
+      ) {
+    if (supabase != null) {
+      _enqueueSession(supabase.auth.currentSession);
+      _authSubscription = supabase.auth.onAuthStateChange.listen(
+        (event) => _enqueueSession(event.session),
+        onError: (Object error, StackTrace stack) {
+          if (mounted) {
+            state = state.copyWith(
+              isAuthenticated: false,
+              clearAuthProfile: true,
+            );
+          }
+        },
       );
+    }
+  }
 
   final LocalStore _store;
+  final SupabaseClient? _supabase;
+  StreamSubscription<AuthState>? _authSubscription;
+  Future<void> _sessionQueue = Future<void>.value();
+
+  void _enqueueSession(Session? session) {
+    _sessionQueue = _sessionQueue
+        .then((_) => syncSupabaseSession(session))
+        .catchError((Object error) {
+          if (mounted) {
+            state = state.copyWith(
+              isAuthenticated: false,
+              clearAuthProfile: true,
+            );
+          }
+        });
+  }
+
+  Future<void> syncSupabaseSession(Session? session) async {
+    if (!mounted) return;
+    if (session != null && session.isExpired) return;
+    final previousId = _store.readString('supabase_user_id');
+    if (session == null || previousId != session.user.id) {
+      await _store.clearUserData();
+      if (!mounted) return;
+      state = SessionState(
+        localeCode: state.localeCode,
+        onboardingCompleted: state.onboardingCompleted,
+        isAuthenticated: false,
+        personalizationCompleted: false,
+      );
+    }
+    if (session == null) return;
+    await _store.writeString('supabase_user_id', session.user.id);
+    if (!mounted) return;
+    state = state.copyWith(
+      isAuthenticated: true,
+      userId: session.user.id,
+      email: session.user.email,
+      displayName: session.user.userMetadata?['full_name'] as String? ?? '',
+      accessToken: session.accessToken,
+    );
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
 
   Future<void> setLocale(String code) async {
     await _store.setLocaleCode(code);
@@ -181,6 +257,7 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   Future<void> signOutMock() async {
+    await _supabase?.auth.signOut(scope: SignOutScope.local);
     await _store.clearUserData();
     state = SessionState(
       localeCode: state.localeCode,
@@ -222,6 +299,7 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   Future<void> resetDemo() async {
+    await _supabase?.auth.signOut(scope: SignOutScope.local);
     await _store.resetDemoProgress();
     state = const SessionState(
       localeCode: null,
@@ -233,6 +311,7 @@ class SessionController extends StateNotifier<SessionState> {
 
   /// Local account deletion — wipes all persisted user data on device.
   Future<void> deleteLocalAccount() async {
+    await _supabase?.auth.signOut(scope: SignOutScope.local);
     await _store.deleteAllLocalUserData();
     state = const SessionState(
       localeCode: null,
@@ -246,5 +325,8 @@ class SessionController extends StateNotifier<SessionState> {
 final sessionProvider = StateNotifierProvider<SessionController, SessionState>((
   ref,
 ) {
-  return SessionController(ref.watch(localStoreProvider));
+  return SessionController(
+    ref.watch(localStoreProvider),
+    supabase: AppConfig.instance.usesSupabase ? Supabase.instance.client : null,
+  );
 });
